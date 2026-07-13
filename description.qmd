@@ -1,0 +1,10 @@
+---
+title: "Tsunami Transformation"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+The idea of tsunami transformation is to uplift distant regions so that the user can better see them. First we discuss the problem on lifting the 2D plane and then explain how one can extend the idea to 3D world. Lets assume we observe the $xy$-plane (we call it ground) from a point $P=(0,0,h)$ (observer). The observer viewing direction is $\alpha \[0,180^\circ]$, where $0$ corresponds to the direction towards the origin $O=(0,0,0)$. Orientation of the observer is arbitrary (azimuth $\phi = [0,360^\circ]$), we consider $\phi = 0$.
