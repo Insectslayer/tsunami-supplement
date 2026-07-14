@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation
 from matplotlib.widgets import Slider, RadioButtons
 from matplotlib.collections import LineCollection
+from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -39,8 +40,9 @@ AVAILABLE_METHODS = {
     4 : { "tsunami_fun" : "Spherical" },
 }
 #==== SELECT METHOD HERE ===================================================
-SELECTED_METHOD = 1
+SELECTED_METHOD = 4
 #===========================================================================
+ANGLES = np.linspace(0, 180, 600)
 
 # control panel constants
 HALF_OF_FOV_ALPHA = 50
@@ -76,8 +78,6 @@ SIDE_WORLD_STYLE = dict(marker='o', linestyle='-', linewidth=1, color='r', marke
 FOV_LINE_STYLE = dict(linewidth=1, color='blue')
 TFOV_LINE_STYLE = dict(linewidth=1, color='magenta')
 WORLD_CIRCLE_STYLE = dict(color='red', fill=False, linewidth=1)
-# SIDE_TBOUNDS_STYLE = dict(marker='o', color='blue', markersize=3)
-SIDE_TBOUNDS_STYLE = None
 
 WORLD_INF_COLOR = DARK_BLUE
 WORLD_OUTSIDE_COLOR = DARK_GREEN  # None will lead to chessboard pattern
@@ -89,13 +89,13 @@ WORLD_END_COLOR = RED
 class TsunamiWorld:
     # --- basic parameters defining the world ---
     # observer parameters
-    h = OBSERVER_H
-    f = DISPLAY_F
-    alpha = INITIAL_ALPHA
-    hfov_alpha = HALF_OF_FOV_ALPHA
-    tile_sz = TILE_SZ
-    world_size = WORLD_SIZE
-    alphas = np.linspace(0, 180, 100)
+    h : float = OBSERVER_H
+    f : float = DISPLAY_F
+    alpha : float = INITIAL_ALPHA
+    hfov_alpha : float = HALF_OF_FOV_ALPHA
+    tile_sz : float = TILE_SZ
+    world_size : int = WORLD_SIZE
+    angles = ANGLES
 
 
     @property
@@ -148,7 +148,8 @@ class TsunamiWorld:
     # the distance between the origin and the point the observer is looking at
     @property
     def view_dist(self):
-        return self.h*self.dsp_0[0]/(self.h-self.dsp_0[1])
+        denom = (self.h-self.dsp_0[1])
+        return self.h*self.dsp_0[0]/denom if not np.isclose(denom, 0) else np.nan
 
     # --- parameters related to sideview and topview ---
     # border for ploting views (top view and side view)
@@ -159,7 +160,7 @@ class TsunamiWorld:
         return (-self.border_size, self.world_size + self.border_size)
     @property
     def z_range(self):
-        return (-self.border_size, max(self.world_size * 0.8 + self.border_size, self.h + self.border_size))
+        return (-self.border_size, max(self.world_size + self.border_size, self.h + self.border_size))
     
     # --- plotting related values
     # 1D arrays of chessboard center lines in the considered range
@@ -173,10 +174,6 @@ class TsunamiWorld:
     @property
     def ground(self):
         return (self.y_tiles - self.y_tiles[0]) - self.tile_hsz
-    
-    @property
-    def angles(self):
-        return self.alphas
     
     @property
     def angles_rad(self):
@@ -225,7 +222,12 @@ w = TsunamiWorld()
 w.welcome_msg()
 
 def method_label() -> str:
-    return AVAILABLE_METHODS.get(SELECTED_METHOD).get("tsunami_fun")
+    method = AVAILABLE_METHODS.get(SELECTED_METHOD)
+    if method:
+        label = method.get("tsunami_fun")
+        if label:
+            return label
+    raise RuntimeError("Method selection failed.")
 
 # --- tsunami parameters ---
 tsunami = None
@@ -240,7 +242,7 @@ match method_label():
         tsunami = SphericalTsunami(world_size=w.world_size, keep_lengths=True)
     case _:
         raise ValueError("Unsupported Tsunami function selected.")
-
+assert tsunami
 
 elevations = ELEVATIONS
 num_elevations = len(elevations)
@@ -333,6 +335,7 @@ def plot_sideview(ax):
         w.ground,
         np.zeros_like(w.ground),
     )
+    assert tsunami
     x, y = tsunami.uplift_ground(w.ground)
     sv_lg_data = plot_sideview_chessboard_line(ax, w.ground, x, y)
 
@@ -354,18 +357,6 @@ def plot_sideview(ax):
     
     sv_vtp1_data = None
     sv_vtp2_data = None
-    if SIDE_TBOUNDS_STYLE:
-        v1 = (w.dsp_lt[1], w.dsp_lt[2]-w.h) 
-        t1 = tsunami.t_seen_in_direction(v1, w.h)
-        #print(f"Arclength for t1 = {tsunami.arc_length(t1)}")
-        x1, y1 = tsunami.t_to_xy(t1)
-        sv_vtp1_data, = ax.plot(x1, y1, **SIDE_TBOUNDS_STYLE)
-        
-        v2 = (w.dsp_lb[1], w.dsp_lb[2]-w.h)
-        t2 = tsunami.t_seen_in_direction(v2, w.h)
-        #print(f"Arclength for t2 = {tsunami.arc_length(t2)}")
-        x2, y2 = tsunami.t_to_xy(t2)
-        sv_vtp2_data, = ax.plot(x2, y2, **SIDE_TBOUNDS_STYLE)
 
     ax.set_xlim(w.y_range)
     ax.set_ylim(w.z_range)
@@ -411,6 +402,7 @@ def distances_to_colors(dists):
 
 
 def tsunami_visible_distances():
+    assert tsunami
     # TODO: nejsou tyto výpočty navíc? tsunami se počítá u sideview.
     distances = np.full_like(w.angles, np.nan, dtype=float)
 
@@ -437,13 +429,51 @@ def tsunami_visible_distances():
 
     return distances
 
+
+def plot_color_strip(ax, colors, label):
+    """
+    Display a one-dimensional RGB color strip.
+
+    Parameters
+    ----------
+    ax
+        Axes used for the strip.
+    colors
+        Array of shape (n, 3).
+    label
+        Text displayed to the right of the strip.
+    """
+    image = ax.imshow(
+        colors[None, :, :],
+        extent=(0, 180, 0, 1),
+        origin="lower",
+        aspect="auto",
+        interpolation="nearest",
+    )
+
+    ax.set_xlim(0, 180)
+    ax.set_ylim(0, 1)
+
+    # Hide axes decorations.
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    # Keep a visible frame around the strip.
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+
+    # Label to the right of the strip.
+    ax.text(1.02, 0.5, label, transform=ax.transAxes, ha="left", va="center", clip_on=False)
+
+    return image
+
+
 def plot_funs(ax):
     pf_d, = ax.plot(w.angles, w.dist_on_ground, 'b', label="Origin to ground")
     pf_d1, = ax.plot(w.angles, w.dist_to_visible, 'r', label="Observer to ground")
 
     tsunami_dists = tsunami_visible_distances()
     pf_d2, = ax.plot(w.angles, tsunami_dists, 'g', label="Origin to tsunami")
-
 
     # Viewing direction
     pf_view_axis = ax.axvline(w.alpha, **SIDE_VIEWAXIS_STYLE)
@@ -454,44 +484,6 @@ def plot_funs(ax):
     
     y_min = 0
     y_max = 5 * WORLD_SIZE
-    # Height of one strip in data coordinates.
-    strip_height = 0.035 * (y_max - y_min)
-    strip_gap = 0 # 0.012 * (y_max - y_min)
-
-    # Flat view strip.
-    flat_colors = distances_to_colors(w.dist_on_ground)[None, :, :]
-    pf_flat_strip = ax.imshow(
-        flat_colors,
-        extent=(
-            w.angles[0],
-            w.angles[-1],
-            y_max - strip_height,
-            y_max,
-        ),
-        origin='lower',
-        aspect='auto',
-        interpolation='nearest',
-        zorder=5,
-    )
-
-    # Tsunami view strip.
-    tsunami_colors = distances_to_colors(tsunami_dists)[None, :, :]
-    pf_tsunami_strip = ax.imshow(
-        tsunami_colors,
-        extent=(
-            w.angles[0],
-            w.angles[-1],
-            y_max - 2 * strip_height - strip_gap,
-            y_max - strip_height - strip_gap,
-        ),
-        origin='lower',
-        aspect='auto',
-        interpolation='nearest',
-        zorder=5,
-    )
-
-    ax.text(1.01, 0.98, "flat", transform=ax.transAxes, va='center', ha='left', fontsize=8)
-    ax.text(1.01, 0.93, "tsunami", transform=ax.transAxes, va='center', ha='left', fontsize=8)
 
     ax.set_xlabel(r"$\alpha$ [deg]")
     ax.set_ylabel("Distance [m]")    
@@ -499,33 +491,47 @@ def plot_funs(ax):
     ax.set_ylim(y_min, y_max)
 
     # Stejný tvar kreslicí plochy jako u side view.
-    x_min, x_max = w.y_range
-    y_min, y_max = w.z_range
-    box_aspect = (y_max - y_min) / (x_max - x_min)
-    ax.set_box_aspect(box_aspect)
+    # x_min, x_max = w.y_range
+    # y_min, y_max = w.z_range
+    # box_aspect = (y_max - y_min) / (x_max - x_min)
+    # ax.set_box_aspect(box_aspect)
 
-    ax.legend()
+    # ax.legend()
+    # ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.02), ncol=3, frameon=False)
+    # ax.legend(loc="upper right", framealpha=0.9)
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5))
 
-    return pf_d, pf_d1, pf_d2, pf_view_axis, pf_fov_bottom, pf_fov_top, pf_flat_strip, pf_tsunami_strip
+    return pf_d, pf_d1, pf_d2, pf_view_axis, pf_fov_bottom, pf_fov_top
 
 
-# outputs: x,y
-# scaling factor to reach the ground from a pixel on j-th row
-fig, axs = plt.subplots(1, 2)
-plt.subplots_adjust(left=0.1, right=0.9, bottom=0.3, top=0.9, wspace=0.2, hspace=0.2)
+fig = plt.figure()
+outer_grid = GridSpec(1, 2, figure=fig,
+    left=0.08, right=0.82, bottom=0.30, top=0.90,
+    wspace=0.25, width_ratios=[1, 1],
+)
+# Left: side view
+ax_side = fig.add_subplot(outer_grid[0, 0])
+# Right: two color strips and the function graph
+right_grid = GridSpecFromSubplotSpec(3, 1,
+    subplot_spec=outer_grid[0, 1], height_ratios=[0.06, 0.06, 0.88], hspace=0.05)
+
+ax_flat_strip = fig.add_subplot(right_grid[0, 0])
+ax_tsunami_strip = fig.add_subplot(right_grid[1, 0], sharex=ax_flat_strip)
+ax_funs = fig.add_subplot(right_grid[2, 0], sharex=ax_flat_strip)
 
 # --- axis for horizontal sliders ---
-ax_alpha = fig.add_axes([0.10, 0.14, 0.65, 0.03])
-# ax_az   = fig.add_axes([0.10, 0.10, 0.65, 0.03])
-ax_tsunami_p = fig.add_axes([0.10, 0.06, 0.65, 0.03])
-ax_h   = fig.add_axes([0.1, 0.02, 0.65, 0.03])
-# ax_method = fig.add_axes([0.8, 0.01, 0.18, 0.19])
+ax_alpha = fig.add_axes((0.10, 0.14, 0.65, 0.03))
+# ax_az   = fig.add_axes((0.10, 0.10, 0.65, 0.03))
+ax_tsunami_p = fig.add_axes((0.10, 0.06, 0.65, 0.03))
+ax_h   = fig.add_axes((0.1, 0.02, 0.65, 0.03))
+# ax_method = fig.add_axes((0.8, 0.01, 0.18, 0.19))
 # --- sliders ---
 s_alpha = Slider(ax_alpha, "alpha", ALPHA_FROM, ALPHA_TO,  valinit=w.alpha,  valstep=(ALPHA_TO-ALPHA_FROM)/ALPHA_NUM_STEPS)
 s_tsunami_p = Slider(ax_tsunami_p, "Tsunami p", 0, len(tsunami_params)-1, valinit=tsunami_idx, valstep=1)
 s_h = Slider(ax_h, "h", H_FROM, H_TO, valinit=w.h, valstep=H_STEP)
 
 def update(_):
+    assert tsunami
     # push slider values into model
     w.alpha = s_alpha.val
     w.h = s_h.val
@@ -573,7 +579,6 @@ def update(_):
     pf_d1.set_data(w.angles, w.dist_to_visible)
     pf_d2.set_data(w.angles, tsunami_dists)
 
-
     pf_flat_strip.set_data(distances_to_colors(flat_dists)[None, :, :])
     pf_tsunami_strip.set_data(distances_to_colors(tsunami_dists)[None, :, :])
 
@@ -585,10 +590,34 @@ for s in (s_alpha, s_tsunami_p, s_h):
 
 
 mng = plt.get_current_fig_manager()
+assert mng
 mng.full_screen_toggle()
 
-sv_lg_data, sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data, sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data = plot_sideview(axs[0])
-pf_d, pf_d1, pf_d2, pf_view_axis, pf_fov_bottom, pf_fov_top, pf_flat_strip, pf_tsunami_strip = plot_funs(axs[1])
+(
+    sv_lg_data, 
+    sv_wp_data, 
+    sv_twp_data, 
+    sv_op_data, 
+    sv_vp_data, 
+    sv_vtp1_data, 
+    sv_vtp2_data, 
+    sv_vaxis_data, 
+    sv_vangle_data
+) = plot_sideview(ax_side)
 
-fig.suptitle(f"{tsunami.name} ({method_label()})", fontsize=16, y=0.98)
+flat_dists = w.dist_on_ground
+tsunami_dists = tsunami_visible_distances()
+
+pf_flat_strip = plot_color_strip(ax_flat_strip, distances_to_colors(flat_dists), "Flat")
+pf_tsunami_strip = plot_color_strip(ax_tsunami_strip, distances_to_colors(tsunami_dists), "Tsunami")
+(
+    pf_d, 
+    pf_d1, 
+    pf_d2, 
+    pf_view_axis, 
+    pf_fov_bottom, 
+    pf_fov_top
+) = plot_funs(ax_funs)
+
+fig.suptitle(f"{method_label()} tsunami method", fontsize=16, y=0.98)
 plt.show()
