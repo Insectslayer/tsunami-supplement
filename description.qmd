@@ -7,4 +7,12 @@ execute:
   message: false
 ---
 
-The idea of tsunami transformation is to uplift distant regions so that the user can better see them. First we discuss the problem on lifting the 2D plane and then explain how one can extend the idea to 3D world. Lets assume we observe the $xy$-plane (we call it ground) from a point $P=(0,0,h)$ (observer). The observer viewing direction is $\alpha \[0,180^\circ]$, where $0$ corresponds to the direction towards the origin $O=(0,0,0)$. Orientation of the observer is arbitrary (azimuth $\phi = [0,360^\circ]$), we consider $\phi = 0$.
+The main idea of the tsunami transformation is to uplift distant regions of the scene, thereby increasing their visibility to the observer. We first introduce the method for lifting lines an planes and then extend the concept to a three-dimensional world.
+
+Consider the ground represented by the $xy$-plane and an observer located at $P=(0,0,h)$. The viewing direction is described by the angle $\alpha \in [0,180^\circ]$, where $\alpha=0$ corresponds to the direction towards the origin $O=(0,0,0)$. Although the observer may have an arbitrary azimuth $\phi \in [0,360^\circ)$, we assume $\phi=0$ throughout the following discussion without loss of generality.
+
+To illustrate the proposed transformation, we employ a simple pinhole camera model. The image plane is located at the focal distance $f$, and the display consists of $(2M+1)\times(2N+1)$ pixels with a pixel size of $h_p$. The image coordinate system is centred at the middle pixel, whose coordinates are $(0,0)$. The geometric configuration and the notation used throughout the paper are summarized in Figure 6 and Table 1.
+
+First we discuss uplifting a ray on a ground from an origin in the $yz$-plane (see side view in Figure fig:side_view_notation). A point
+
+

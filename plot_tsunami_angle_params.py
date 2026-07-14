@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 import tsunami as ts
 
-WORLD_SIZE = 5000
+WORLD_SIZE = 500
 NUM_SAMPLES = 100
 
 # Choose one:
@@ -34,7 +34,7 @@ def create_instance(name):
     raise ValueError(name)
 
 
-def load_params(filename="tsunami_angle_params.npz"):
+def load_params(filename=f"tsunami_angle_params_{WORLD_SIZE}.npz"):
     if filename.endswith(".npz"):
         data = np.load(filename, allow_pickle=True)
         return data["angles_deg"], data[METHOD]
