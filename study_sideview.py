@@ -42,7 +42,7 @@ AVAILABLE_METHODS = {
 #==== SELECT METHOD HERE ===================================================
 SELECTED_METHOD = 4
 #===========================================================================
-ANGLES = np.linspace(0, 180, 600)
+ANGLES = np.linspace(0, 180, 1200)
 
 # control panel constants
 HALF_OF_FOV_ALPHA = 50
@@ -55,7 +55,7 @@ H_FROM = 1.
 H_TO = 1501.
 H_STEP = 50.
 
-ELEVATIONS = np.radians(np.arange(5, 176, 5))
+ELEVATIONS = np.radians(np.arange(5, 176, 1))
 INITIAL_ELEVATION_IDX = 0
 
 # color constants
@@ -229,6 +229,66 @@ def method_label() -> str:
             return label
     raise RuntimeError("Method selection failed.")
 
+
+def compute_tsunami_levels(h):
+    """
+    Return regularly spaced lift angles and corresponding tsunami parameters.
+
+    Initial zero-valued parameters are replaced by one flat-world level.
+    Its angle is one sampling interval below the first angle producing
+    a non-zero lift.
+
+    Example:
+        angles: [30, 35, 40, ..., 175]
+        params: [ 0, p35, p40, ..., p175]
+    """
+    candidate_angles_deg = np.degrees(ELEVATIONS)
+
+    candidate_params = np.asarray(
+        [
+            tsunami.angle_to_p(h, angle_rad)
+            for angle_rad in ELEVATIONS
+        ],
+        dtype=float,
+    )
+
+    active = (
+        np.isfinite(candidate_params)
+        & ~np.isclose(candidate_params, 0.0)
+    )
+
+    if not np.any(active):
+        return (
+            np.array([0.0]),
+            np.array([0.0]),
+        )
+
+    first_active = np.flatnonzero(active)[0]
+
+    if len(candidate_angles_deg) >= 2:
+        delta_angle = candidate_angles_deg[1] - candidate_angles_deg[0]
+    else:
+        delta_angle = 5.0
+
+    flat_angle = candidate_angles_deg[first_active] - delta_angle
+
+    level_angles_deg = np.concatenate(
+        (
+            [flat_angle],
+            candidate_angles_deg[first_active:],
+        )
+    )
+
+    tsunami_params = np.concatenate(
+        (
+            [0.0],
+            candidate_params[first_active:],
+        )
+    )
+
+    return level_angles_deg, tsunami_params
+
+
 # --- tsunami parameters ---
 tsunami = None
 match method_label():
@@ -244,15 +304,30 @@ match method_label():
         raise ValueError("Unsupported Tsunami function selected.")
 assert tsunami
 
-elevations = ELEVATIONS
-num_elevations = len(elevations)
+# elevations = ELEVATIONS
+# num_elevations = len(elevations)
 
-tsunami_idx = INITIAL_ELEVATION_IDX
+# tsunami_idx = INITIAL_ELEVATION_IDX
+
+# print("Precomputing tsunami params...")
+# tsunami_params = [tsunami.angle_to_p(w.h, elevations[i]) for i in range(num_elevations)]
+# tsunami_params = create_one_leading_zero(tsunami_params)
+# tsunami.lift(tsunami_params[tsunami_idx])
+# print("done.")
 
 print("Precomputing tsunami params...")
-tsunami_params = [tsunami.angle_to_p(w.h, elevations[i]) for i in range(num_elevations)]
-tsunami_params = create_one_leading_zero(tsunami_params)
-tsunami.lift(tsunami_params[tsunami_idx])
+level_angles_deg, tsunami_params = compute_tsunami_levels(w.h)
+
+delta_lift_angle = level_angles_deg[1] - level_angles_deg[0]
+
+INITIAL_LEVEL_ANGLE = level_angles_deg[
+    min(INITIAL_ELEVATION_IDX, len(level_angles_deg) - 1)
+]
+
+initial_level_idx = int(
+    np.argmin(np.abs(level_angles_deg - INITIAL_LEVEL_ANGLE))
+)
+tsunami.lift(tsunami_params[initial_level_idx])
 print("done.")
 
 
@@ -366,37 +441,277 @@ def plot_sideview(ax):
     return sv_lg_data, sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data, sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data
 
 
-def distances_to_colors(dists):
+def tsunami_strip_colors():
+    """
+    Return one RGB strip for the current tsunami lift.
+    """
+    dists = tsunami_visible_distances()
+    return distances_to_colors(dists, w.angles)
+
+
+def build_tsunami_strip_evolution():
+    """
+    Build an RGB image using exactly the same lift levels as the slider.
+    """
+    current_idx = selected_tsunami_level_idx()
+
+    rows = []
+
+    for p in tsunami_params:
+        tsunami.lift(float(p))
+
+        dists = tsunami_visible_distances()
+        colors = distances_to_colors(dists, w.angles)
+        rows.append(colors)
+
+    # Obnovení aktuálního stavu.
+    tsunami.lift(float(tsunami_params[current_idx]))
+
+    image = np.stack(rows, axis=0)
+
+    return image, level_angles_deg
+
+# def build_tsunami_strip_evolution(level_angles_deg=None):
+#     """
+#     Build an RGB image showing how the tsunami strip changes with lift.
+
+#     Parameters
+#     ----------
+#     level_angles_deg
+#         1D array-like of elevation angles in degrees used to generate
+#         tsunami lift parameters. If None, 0..175 step 5 is used.
+
+#     Returns
+#     -------
+#     img
+#         RGB array of shape (num_levels, num_angles, 3)
+#     levels_deg
+#         1D array of y-axis values in degrees
+#     """
+#     assert tsunami
+
+#     if level_angles_deg is None:
+#         level_angles_deg = np.arange(0, 176, 5, dtype=float)
+#     else:
+#         level_angles_deg = np.asarray(level_angles_deg, dtype=float)
+
+#     rows = []
+
+#     # Uložit aktuální stav, abychom ho po výpočtu obnovili
+#     current_idx = int(s_tsunami_p.val) if 's_tsunami_p' in globals() else tsunami_idx
+#     current_p = tsunami_params[current_idx]
+
+#     for elev_deg in level_angles_deg:
+#         if np.isclose(elev_deg, 0.0):
+#             p = 0.0
+#         else:
+#             p = tsunami.angle_to_p(w.h, np.radians(elev_deg))
+
+#         tsunami.lift(p)
+
+#         row_colors = tsunami_strip_colors()
+#         rows.append(row_colors)
+
+#     # Obnovit původní lift
+#     tsunami.lift(current_p)
+
+#     img = np.stack(rows, axis=0)   # shape = (n_levels, n_angles, 3)
+#     return img, level_angles_deg
+
+
+def plot_tsunami_strip_evolution(ax, img, level_angles_deg, title="Tsunami strip evolution"):
+    """
+    Plot precomputed RGB image of tsunami-strip evolution.
+    """
+    # ax.imshow(
+    #     img,
+    #     extent=(w.angles[0], w.angles[-1], levels_deg[0], levels_deg[-1]),
+    #     origin="lower",
+    #     aspect="auto",
+    #     interpolation="nearest",
+    # )
+
+    # ax.set_xlabel(r"$\alpha$ [deg]")
+    # ax.set_ylabel("End-of-world elevation [deg]")
+    delta = level_angles_deg[1] - level_angles_deg[0]
+
+    ax.imshow(
+        img,
+        extent=(
+            w.angles[0],
+            w.angles[-1],
+            level_angles_deg[0] - delta / 2,
+            level_angles_deg[-1] + delta / 2,
+        ),
+        origin="lower",
+        aspect="auto",
+        interpolation="nearest",
+    )
+
+    ax.set_xlim(w.angles[0], w.angles[-1])
+    ax.set_ylim(
+        level_angles_deg[0] - delta / 2,
+        level_angles_deg[-1] + delta / 2,
+    )
+
+    ax.set_xlabel(r"Viewing angle $\alpha$ [deg]")
+    ax.set_ylabel("Lift angle [deg]")
+    ax.set_title(title)
+
+
+def show_strip_evolution_on_key(event):
+    if event.key is None or event.key.lower() != "e":
+        return
+
+    levels_deg = level_angles_deg
+    img, levels_deg = build_tsunami_strip_evolution()
+
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    plot_tsunami_strip_evolution(ax2, img, levels_deg)
+    fig2.tight_layout()
+    fig2.show()
+
+
+def distances_to_colors(dists, angles=None):
     """
     Convert visible ground distances to RGB colors.
 
-    Black/white: tiles inside the modelled world.
-    Green:       ground beyond the modelled world.
-    Blue:        no ground is visible in the given direction.
+    Each color represents an angular interval around one sampled angle.
+
+    Black/white:
+        The whole angular interval sees one tile inside the modelled world.
+    Gray:
+        The interval covers more than one tile, so its exact black/white
+        appearance cannot be represented reliably.
+    Green:
+        Ground beyond the modelled world.
+    Blue:
+        No ground is visible in the given direction.
+
+    Tile convention
+    ---------------
+    Tile centres are at
+
+        ..., -tile_sz, 0, tile_sz, 2*tile_sz, ...
+
+    and tile boundaries are therefore at
+
+        (k + 0.5) * tile_sz.
+
+    This is consistent with using round(distance / tile_sz).
     """
     dists = np.asarray(dists, dtype=float)
 
-    colors = np.empty((len(dists), 3), dtype=float)
-    colors[:] = BLUE
+    if angles is None:
+        angles = w.angles
+    angles = np.asarray(angles, dtype=float)
 
-    finite = np.isfinite(dists)
+    if dists.ndim != 1 or angles.ndim != 1:
+        raise ValueError("dists and angles must be one-dimensional arrays.")
 
-    # Ground beyond the modelled world.
-    outside_world = finite & (dists > w.world_size)
-    colors[outside_world] = WORLD_OUTSIDE_COLOR
+    if len(dists) != len(angles):
+        raise ValueError("dists and angles must have the same length.")
 
-    # Tiles inside the modelled world.
-    inside_world = finite & (dists >= 0) & (dists <= w.world_size)
+    n = len(dists)
+    colors = np.empty((n, 3), dtype=float)
+    colors[:] = WORLD_INF_COLOR
 
-    tile_indices = np.floor(dists[inside_world] / w.tile_sz).astype(int)
-    black_tiles = tile_indices % 2 == 0
-    white_tiles = ~black_tiles
+    if n == 0:
+        return colors
 
-    inside_colors = np.empty((inside_world.sum(), 3), dtype=float)
-    inside_colors[black_tiles] = (0.0, 0.0, 0.0)
-    inside_colors[white_tiles] = (1.0, 1.0, 1.0)
+    # Angular bin edges. Each sample represents the interval halfway
+    # towards the preceding and following sample.
+    angle_edges = np.empty(n + 1, dtype=float)
 
-    colors[inside_world] = inside_colors
+    if n == 1:
+        angle_edges[:] = (
+            angles[0] - 0.5,
+            angles[0] + 0.5,
+        )
+    else:
+        angle_edges[1:-1] = 0.5 * (angles[:-1] + angles[1:])
+        angle_edges[0] = angles[0] - 0.5 * (angles[1] - angles[0])
+        angle_edges[-1] = angles[-1] + 0.5 * (
+            angles[-1] - angles[-2]
+        )
+
+    # Distance at angular-bin edges. Linear interpolation is sufficient
+    # for deciding whether the interval crosses a tile boundary.
+    edge_dists = np.full(n + 1, np.nan, dtype=float)
+
+    finite_samples = np.isfinite(dists)
+
+    if np.count_nonzero(finite_samples) >= 2:
+        edge_dists[:] = np.interp(
+            angle_edges,
+            angles[finite_samples],
+            dists[finite_samples],
+            left=np.nan,
+            right=np.nan,
+        )
+    elif np.count_nonzero(finite_samples) == 1:
+        idx = np.flatnonzero(finite_samples)[0]
+        edge_dists[idx] = dists[idx]
+        edge_dists[idx + 1] = dists[idx]
+
+    gray = np.array((GRAY, GRAY, GRAY), dtype=float) / 255.0
+    black = np.array((0.0, 0.0, 0.0))
+    white = np.array((1.0, 1.0, 1.0))
+
+    for i in range(n):
+        d_center = dists[i]
+        d0 = edge_dists[i]
+        d1 = edge_dists[i + 1]
+
+        # No visible ground.
+        if not np.isfinite(d_center):
+            colors[i] = WORLD_INF_COLOR
+            continue
+
+        # If edge interpolation failed, fall back to the centre distance.
+        if not np.isfinite(d0):
+            d0 = d_center
+        if not np.isfinite(d1):
+            d1 = d_center
+
+        d_min = min(d0, d1, d_center)
+        d_max = max(d0, d1, d_center)
+
+        # Entire angular bin lies beyond the modelled world.
+        if d_min > w.world_size:
+            colors[i] = WORLD_OUTSIDE_COLOR
+            continue
+
+        # Interval crosses the boundary of the modelled world.
+        # It contains both a tile and the outside-world continuation.
+        if d_min <= w.world_size < d_max:
+            colors[i] = gray
+            continue
+
+        # Negative distances should normally not occur, but treat them
+        # as no visible forward ground.
+        if d_max < 0:
+            colors[i] = WORLD_INF_COLOR
+            continue
+
+        d_min = max(d_min, 0.0)
+        d_max = min(d_max, w.world_size)
+
+        # Tile index compatible with:
+        #
+        #     np.round(distance / tile_sz)
+        #
+        # Using floor(x + 0.5) avoids NumPy's banker's rounding exactly
+        # at half-integer boundaries.
+        tile_min = math.floor(d_min / w.tile_sz + 0.5)
+        tile_max = math.floor(d_max / w.tile_sz + 0.5)
+
+        if tile_min != tile_max:
+            colors[i] = gray
+        elif tile_min % 2 == 0:
+            colors[i] = black
+        else:
+            colors[i] = white
 
     return colors
 
@@ -503,6 +818,12 @@ def plot_funs(ax):
 
     return pf_d, pf_d1, pf_d2, pf_view_axis, pf_fov_bottom, pf_fov_top
 
+def selected_tsunami_level_idx():
+    """
+    Return the index corresponding to the angle selected on the slider.
+    """
+    return int(np.argmin(np.abs(level_angles_deg - s_lift_angle.val)))
+
 
 fig = plt.figure()
 outer_grid = GridSpec(1, 2, figure=fig,
@@ -527,7 +848,16 @@ ax_h   = fig.add_axes((0.1, 0.02, 0.65, 0.03))
 # ax_method = fig.add_axes((0.8, 0.01, 0.18, 0.19))
 # --- sliders ---
 s_alpha = Slider(ax_alpha, "alpha", ALPHA_FROM, ALPHA_TO,  valinit=w.alpha,  valstep=(ALPHA_TO-ALPHA_FROM)/ALPHA_NUM_STEPS)
-s_tsunami_p = Slider(ax_tsunami_p, "Tsunami p", 0, len(tsunami_params)-1, valinit=tsunami_idx, valstep=1)
+# s_tsunami_p = Slider(ax_tsunami_p, "Tsunami p", 0, len(tsunami_params)-1, valinit=tsunami_idx, valstep=1)
+s_lift_angle = Slider(
+    ax_tsunami_p,
+    "Lift angle",
+    valmin=float(level_angles_deg[0]),
+    valmax=float(level_angles_deg[-1]),
+    valinit=float(level_angles_deg[0]),
+    valstep=level_angles_deg,
+    valfmt="%1.0f°",
+)
 s_h = Slider(ax_h, "h", H_FROM, H_TO, valinit=w.h, valstep=H_STEP)
 
 def update(_):
@@ -535,7 +865,8 @@ def update(_):
     # push slider values into model
     w.alpha = s_alpha.val
     w.h = s_h.val
-    idx = int(s_tsunami_p.val)
+    # idx = int(s_tsunami_p.val)
+    idx = selected_tsunami_level_idx()
 
 
     # tsunami params and sideview ground
@@ -585,7 +916,7 @@ def update(_):
     fig.canvas.draw_idle()
 
 # všechny slidery napojíme na stejný update
-for s in (s_alpha, s_tsunami_p, s_h):
+for s in (s_alpha, s_lift_angle, s_h):
     s.on_changed(update)
 
 
@@ -620,4 +951,5 @@ pf_tsunami_strip = plot_color_strip(ax_tsunami_strip, distances_to_colors(tsunam
 ) = plot_funs(ax_funs)
 
 fig.suptitle(f"{method_label()} tsunami method", fontsize=16, y=0.98)
+fig.canvas.mpl_connect("key_press_event", show_strip_evolution_on_key)
 plt.show()

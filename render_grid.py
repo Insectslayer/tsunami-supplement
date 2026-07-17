@@ -9,6 +9,10 @@ rendering of regular grid in 3D
 #import cv2
 import math
 import numpy as np
+
+import matplotlib
+matplotlib.use("TkAgg")
+
 import matplotlib.pyplot as plt
 #from scipy.ndimage import minimum_filter, maximum_filter
 from scipy.ndimage import binary_dilation
@@ -1473,6 +1477,7 @@ radio_method.on_clicked(update_method)
 
 mng = plt.get_current_fig_manager()
 mng.full_screen_toggle()
+
 
 sv_lg_data, sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data, sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data = plot_sideview(axs[1,0])
 cv_im, fov = plot_camera_view(axs[0,0], w.d)
