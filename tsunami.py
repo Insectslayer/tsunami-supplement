@@ -6,7 +6,7 @@ Package of Tsunami functions
 
 @author: pam
 """
-from typing import List, Tuple, Callable
+from typing import Any, List, Sequence, Tuple, Callable
 from abc import ABC, abstractmethod
 
 import math
@@ -19,6 +19,7 @@ from scipy.optimize import fsolve
 from scipy.optimize import bisect
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
+from typing import cast
 from scipy.integrate import quad
 
 """
@@ -158,9 +159,9 @@ def arc_length_params(x, y):
     return np.concatenate(([0], np.cumsum(ds)))
 
 
-def get_point_with_normal(cx: List[float], cy: List[float],
-                          nx: List[float], ny: List[float],
-                          s: List[float], index: int, t: float
+def get_point_with_normal(cx: List[float] | np.ndarray, cy: List[float] | np.ndarray,
+                          nx: List[float] | np.ndarray, ny: List[float] | np.ndarray,
+                          s: List[float] | np.ndarray, index: int, t: float
                           ) -> Tuple[int, float, float, float, float]:
     """
     returns [x,y] coordinates of a point with parameter t on a curve
@@ -216,10 +217,10 @@ def append_points(x_out, y_out, gx, gy, i_from, i_to):
         y_out.append(gy[i])
 
 
-def erect_city(gx: List[float], gy: List[float],
-               buildings: List[float],
-               widths: List[float],
-               heights: List[float], s: List[float]
+def erect_city(gx: List[float] | np.ndarray, gy: List[float] | np.ndarray,
+               buildings: List[float] | np.ndarray,
+               widths: List[float] | np.ndarray,
+               heights: List[float] | np.ndarray, s: List[float] | np.ndarray
                ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns the city polyline (x and y coordinates separately) erected
@@ -338,7 +339,7 @@ def uplift_2D(s: float, h: float, foo: Callable[[float], Tuple[float, float]],
 
 def FOV_keypoints(dx: int,
                   dy: int,
-                  step: int) -> Tuple[List[float], List[float]]:
+                  step: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     computes coordinates of keypoints spread on the left and top edge of a FOV
     of size dx x dy with the given step.
@@ -393,7 +394,12 @@ def find_t_for_angle(f: Callable[[float], Tuple[float, float]],
         return current_angle - target_angle
 
     t_solution = bisect(angle_difference, t_min, t_max, xtol=tol)
-    return t_solution
+    # scipy.optimize.bisect may return a tuple (root, results) in some versions
+    # ensure we return a float root
+    if isinstance(t_solution, tuple):
+        t_solution = t_solution[0]
+
+    return float(t_solution)
 
 
 def t_values_for_alpha(f: Callable[[float], Tuple[float, float]],
@@ -408,7 +414,7 @@ def t_values_for_alpha(f: Callable[[float], Tuple[float, float]],
 
     for angle in np.arange(0, np.pi + angle_step, angle_step):
         try:
-            t = find_t_for_angle(f, h, angle, current_t_min, t_max)
+            t = find_t_for_angle(f, h, float(angle), current_t_min, t_max)
             t_values.append(t)
             current_t_min = t  # Aktualizace dolní meze pro další iteraci
         except ValueError:
@@ -542,10 +548,10 @@ def make_arc_length_foo(foo: Callable[[float], Tuple[float, float]],
 
     if invert:
         return interp1d(t_vals, arc_length,
-                        kind='linear', fill_value="extrapolate")
+                        kind='linear', fill_value=cast(Any, "extrapolate"))
     else:
         return interp1d(arc_length, t_vals,
-                        kind='linear', fill_value="extrapolate")
+                        kind='linear', fill_value=cast(Any, "extrapolate"))
 
 
 class Tsunami(ABC):
@@ -665,7 +671,8 @@ class Tsunami(ABC):
         def difference(t):
             return s - self.arc_length(t)
         
-        return bisect(difference, 0, s)
+        result = bisect(difference, 0, s)
+        return float(result[0] if isinstance(result, tuple) else result)
 
     def t_to_s(self, t: float) -> float:
         """
@@ -726,10 +733,10 @@ class Tsunami(ABC):
         vz = -np.cos(theta)
         t_list = self.t_seen_in_directions(vd.tolist(), vz.tolist(), h)
         s_lut = np.array(self.t_lst_to_s_lst(t_list), dtype=float)
-        return theta, s_lut
+        return theta.tolist(), s_lut.tolist()
 
-    def uplift_ground(self, dists: List[float]) -> Tuple[List[float], 
-                                                         List[float]]:
+    def uplift_ground(self, dists: List[float] | np.ndarray) -> Tuple[List[float], 
+                                                                List[float]]:
         """
         Computes uplifted coordinates of ground points at distances s in 
         flat space using the Tsunami procedure.
@@ -812,7 +819,14 @@ class Tsunami(ABC):
         def difference(param: float) -> float:
             return angle_for_p(param) - angle
 
-        return bisect(difference, p_start, p_start + dp, xtol=tol)
+        res = bisect(difference, p_start, p_start + dp, xtol=tol)
+        # bisect may return a raw root or a (root, results) tuple depending
+        # on the implementation; ensure we return a float root.
+        if isinstance(res, tuple):
+            root = res[0]
+        else:
+            root = res
+        return float(root)
        
         
     def ylevel_to_p(self, 
@@ -851,7 +865,12 @@ class Tsunami(ABC):
             y = level_for_p(p)
             return y - y_level
         
-        return bisect(goo, p_start, p_start+dp)
+        # bisect implementations may return a float or a tuple like
+        # (root, RootResults). Normalize to a float root to satisfy callers
+        res = bisect(goo, p_start, p_start+dp)
+        if isinstance(res, tuple):
+            return float(res[0])
+        return float(res)
     
     def animate_levels(self, levels: list[float], d: float=0) -> list[float]:
         """
@@ -960,8 +979,8 @@ class AngularTsunami(Tsunami):
         d = math.sqrt(h**2+s**2)
         return 2*s*h/d, h-(h**2-s**2)/d
         
-    def t_to_xy(self, s: float) -> Tuple[float, float]:
-        return self._foo(s, self.p)
+    def t_to_xy(self, t: float) -> Tuple[float, float]:
+        return self._foo(t, self.p)
 
     def derivative_at_t(self, t: float) -> Tuple[float, float]:
         kappa = self.p
@@ -1003,7 +1022,7 @@ class AngularTsunami(Tsunami):
             x0, y0 = self._foo(s, kappa)
             return [x0-x, y0-y]
         
-        return fsolve(displacement, (1, 1))
+        return fsolve(displacement, (1, 1))[0]
 
 
 class SphericalTsunami(Tsunami):
@@ -1012,11 +1031,10 @@ class SphericalTsunami(Tsunami):
     """
     def t_to_xy(self, t: float) -> Tuple[float, float]:
         kappa = float(self.p)
-        t = np.asarray(t, dtype=float)
         if np.isclose(kappa, 0):
-            return t, 0
+            return t, 0.0
         alfa = t*kappa
-        return np.sin(alfa)/kappa, (1-np.cos(alfa))/kappa
+        return float(np.sin(alfa)/kappa), float((1-np.cos(alfa))/kappa)
 
     def derivative_at_t(self, t: float) -> Tuple[float, float]:
         kappa = self.p
@@ -1081,15 +1099,16 @@ class SphericalTsunami(Tsunami):
             self.lift(old_p)
             return calculate_angle((0, 0), (0, h), (x, y)) - angle
 
-        return bisect(difference, 0.0, p_max, xtol=tol)
+        # bisect may have typing that allows returning extra info; ensure float
+        return cast(float, bisect(difference, 0.0, p_max, xtol=tol, full_output=False))
     
-    def animate_winding(self, n: float) -> list[float]:
+    def animate_winding(self, n: int) -> list[float]:
         """
         returns a list of kappa (curvature) parameters for spherical
         method defining the bending that winds the ground of maximal size
         world_size onto a circle in n-steps.
         """
-        return np.linspace(0, np.pi, n)/self._world_size
+        return list(np.linspace(0, np.pi, n) / self._world_size)
 
 
 if __name__ == "__main__":
@@ -1138,7 +1157,7 @@ if __name__ == "__main__":
     ax.plot(x, y, 'r-')
     h = 1000
     alpha = np.radians(45)
-    v = [np.sin(alpha), -np.cos(alpha)]
+    v = (float(np.sin(alpha)), float(-np.cos(alpha)))
     t = tsunami.t_seen_in_direction(v, h)
     s = tsunami.arc_length(t)
     
