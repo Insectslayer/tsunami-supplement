@@ -1,0 +1,3 @@
+article TODO
+- oříznout chessboard pattern in top-view v corelu
+- udělat obrázek s notací P, P' na zvednuté křivce.
