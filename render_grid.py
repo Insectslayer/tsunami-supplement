@@ -9,10 +9,6 @@ rendering of regular grid in 3D
 #import cv2
 import math
 import numpy as np
-
-import matplotlib
-matplotlib.use("TkAgg")
-
 import matplotlib.pyplot as plt
 #from scipy.ndimage import minimum_filter, maximum_filter
 from scipy.ndimage import binary_dilation
