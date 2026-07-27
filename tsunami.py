@@ -554,6 +554,13 @@ def make_arc_length_foo(foo: Callable[[float], Tuple[float, float]],
                         kind='linear', fill_value=cast(Any, "extrapolate"))
 
 
+def make_angles_deg(start: float, stop: float, step: float) -> np.ndarray:
+    """Return angles including stop if it lies on the arithmetic grid."""
+    n = int(round((stop - start) / step))
+    return start + step * np.arange(n + 1, dtype=float)
+
+
+
 class Tsunami(ABC):
     """
     class that encapsulate different Tsunami algorithms
@@ -787,8 +794,9 @@ class Tsunami(ABC):
         if d == 0:
             d = self._world_size
 
-        if angle < calculate_angle((0, 0), (0, h), (d, 0)):
-            return 0
+        flat_angle = calculate_angle((0, 0), (0, h), (d, 0))
+        if angle <= flat_angle + tol:
+            return 0.0
 
         def angle_for_p(param: float) -> float:
             old_p = self.p
@@ -827,6 +835,43 @@ class Tsunami(ABC):
         else:
             root = res
         return float(root)
+
+    def angles_to_params(
+            self,
+            h: float,
+            angles: Sequence[float],
+            d: float = 0,
+            *,
+            use_previous_as_start: bool = True
+            ) -> list[float]:
+        """
+        Return lifting parameters for the requested viewing angles.
+
+        Angles must be given in radians and should normally be sorted in
+        increasing order. If ``d == 0``, the end of the modelled world is
+        used, consistently with :meth:`angle_to_p`.
+
+        When ``use_previous_as_start`` is true, the parameter found for one
+        angle is used as the lower search bound for the next angle. This makes
+        the computation faster and follows the expected monotone progression
+        of the lifting parameter.
+        """
+        params: list[float] = []
+        p_start = 0.0
+
+        for angle in angles:
+            p = self.angle_to_p(
+                h=h,
+                angle=float(angle),
+                d=d,
+                p_start=p_start if use_previous_as_start else 0.0,
+            )
+            params.append(float(p))
+
+            if use_previous_as_start:
+                p_start = float(p)
+
+        return params
        
         
     def ylevel_to_p(self, 
