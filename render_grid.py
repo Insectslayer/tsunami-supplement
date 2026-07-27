@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation
 from matplotlib.widgets import Slider, RadioButtons
 from matplotlib.collections import LineCollection
+from matplotlib.patches import Rectangle, Circle
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -150,11 +151,14 @@ WORLD_END_COLOR = RED
     cached_property decorator extended by dependances
     for automatic invalidation
 """
+class CachedPropertyWithDeps(cached_property):
+    def __init__(self, func, depends_on=None):
+        super().__init__(func)
+        self._depends_on = set(depends_on) if depends_on else set()
+
 def depends_on(*fields):
     def deco(func):
-        cp = cached_property(func)
-        cp._depends_on = set(fields)
-        return cp
+        return CachedPropertyWithDeps(func, depends_on=fields)
     return deco
 
 @dataclass
@@ -162,7 +166,7 @@ class TsunamiWorld:
     # --- basic parameters defining the world ---
     # observer parameters
     h = OBSERVER_H
-    az = INITIAL_AZ
+    az: float = INITIAL_AZ
 
     # camera parameters
     N = DISPLAY_N  
@@ -465,6 +469,8 @@ def dist_field_fixed_conics_tsunami():
     The shapes of the distance contours remain fixed; only their distance
     labels change according to the 1-D tsunami profile.
     """
+    if tsunami is None:
+        raise RuntimeError("tsunami object is not initialized")
     theta_lut, s_lut = tsunami.build_lut_theta(w.h)
     d = np.interp(np.arctan2(w.pixel_d, w.dz), theta_lut, s_lut)
     return d*w.pixel_d/w.dy
@@ -512,6 +518,8 @@ def dist_field_radial_tsunami(theta_lut = None, s_lut = None):
     if the ray does not intersect the ground the value will be np.inf
     """
     if theta_lut is None or s_lut is None:
+        if tsunami is None:
+            raise RuntimeError("tsunami object is not initialized")
         theta_lut, s_lut = tsunami.build_lut_theta(w.h)
     d = np.interp(np.arctan2(w.pixel_d, w.dz), theta_lut, s_lut)
     return d
@@ -524,6 +532,8 @@ def dist_field_directional_tsunami(theta_lut = None, s_lut = None):
     per image row and broadcast it to all columns.
     """
     if theta_lut is None or s_lut is None:
+        if tsunami is None:
+            raise RuntimeError("tsunami object is not initialized")
         theta_lut, s_lut = tsunami.build_lut_theta(w.h)
 
     # angle in the vertical forward plane; one value per row is enough
@@ -565,12 +575,12 @@ def mix_dist_fields(d_dir, d_rad, mix: float):
 
     return result
     
-    d = np.full_like(d_dir, np.inf, dtype=float)
+    # d = np.full_like(d_dir, np.inf, dtype=float)
 
-    valid = np.isfinite(d_dir) & np.isfinite(d_rad)
-    d[valid] = (1.0 - mix) * d_dir[valid] + mix * d_rad[valid]
+    # valid = np.isfinite(d_dir) & np.isfinite(d_rad)
+    # d[valid] = (1.0 - mix) * d_dir[valid] + mix * d_rad[valid]
 
-    return d
+    # return d
 
 
 def world_boundary_rows(d):
@@ -607,7 +617,7 @@ def boundary_roughness(d):
     return np.sqrt(np.mean(residual**2))
 
 
-def find_best_mix_fast(d_dir, d_rad, n: int = 81):
+def find_best_mix_fast(d_dir, d_rad, n: int = 81) -> tuple[float, float]:
     """
     Find best mix without recomputing the tsunami LUT for every mix.
     This is still a search, but the expensive part is computed only once.
@@ -628,12 +638,14 @@ def find_best_mix_fast(d_dir, d_rad, n: int = 81):
 
 
 def dist_field_mixed_tsunami(mix: float | None = None):
+    if tsunami is None:
+        raise RuntimeError("tsunami object is not initialized")
     theta_lut, s_lut = tsunami.build_lut_theta(w.h)
 
     d_dir = dist_field_directional_tsunami(theta_lut, s_lut)
     d_rad = dist_field_radial_tsunami(theta_lut, s_lut)
 
-    if not mix:
+    if mix is None:
         mix, score = find_best_mix_fast(d_dir, d_rad)
         # print(f"best mix = {mix:.3f}, score = {score:.3f}")
 
@@ -692,6 +704,8 @@ def distance_conic_rows(
 
 
 def centre_column_tsunami_distances():
+    if tsunami is None:
+            raise RuntimeError("tsunami object is not initialized")
     theta_lut, s_lut = tsunami.build_lut_theta(w.h)
 
     centre = w.N
@@ -726,6 +740,8 @@ def dist_field_balanced_tsunami(
     Only the right half of the image is computed. The left half is obtained
     by symmetry.
     """
+    if tsunami is None:
+        raise RuntimeError("tsunami object is not initialized")
     if np.isclose(tsunami.p, 0):
         return np.asarray(w.d, dtype=float).copy()
 
@@ -978,7 +994,7 @@ w.welcome_msg()
 
 # --- tsunami parameters ---
 tsunami = None
-match AVAILABLE_METHODS.get(SELECTED_METHOD).get("tsunami_fun"):
+match AVAILABLE_METHODS.get(SELECTED_METHOD).get("tsunami_fun"): # type: ignore
     case "Parabolic":
         tsunami = ParabolicTsunami(world_size=w.world_size, keep_lengths=True)
     case "Hyperbolic":
@@ -998,7 +1014,7 @@ METHOD_FUNCS = {
     # "balanced": dist_field_balanced_tsunami,
 }
 
-current_method_name = AVAILABLE_METHODS.get(SELECTED_METHOD).get("method")
+current_method_name = AVAILABLE_METHODS.get(SELECTED_METHOD).get("method") # type: ignore
 if current_method_name not in METHOD_FUNCS:
     raise ValueError("Unsupported method selected.")
 method = METHOD_FUNCS[current_method_name]
@@ -1110,6 +1126,9 @@ def plot_sideview(ax):
         w.ground,
         np.zeros_like(w.ground),
     )
+    if tsunami is None:
+        raise RuntimeError("tsunami object is not initialized")
+
     x, y = tsunami.uplift_ground(w.ground)
     sv_lg_data = plot_sideview_chessboard_line(ax, w.ground, x, y)
 
@@ -1162,7 +1181,7 @@ def plot_topview(ax, fov, fov_t):
     world_clip = None
     if WORLD_OUTSIDE_COLOR:
         ax.add_patch(
-            plt.Rectangle(
+            Rectangle(
                 (w.x_range[0], w.y_range[0]),
                 w.x_range[1] - w.x_range[0],
                 w.y_range[1] - w.y_range[0],
@@ -1170,17 +1189,16 @@ def plot_topview(ax, fov, fov_t):
                 zorder=-20
             )
         )
-        world_clip = plt.Circle((0, 0), w.world_size, transform=ax.transData)
-        ax.add_patch(plt.Circle((0, 0), w.world_size, color="white", zorder=-19)
-    )
+        world_clip = Circle((0, 0), w.world_size, transform=ax.transData)
+        ax.add_patch(Circle((0, 0), w.world_size, color="white", zorder=-19))
 
     # chessboard
     for i, x in enumerate(w.x_tiles):
         for j, y in enumerate(w.y_tiles):
             if (i + j) % 2 == 1:
-                rect = plt.Rectangle((x-w.tile_hsz, y-w.tile_hsz),
-                                    w.tile_sz, w.tile_sz,
-                                    color='black', linewidth=0)
+                rect = Rectangle((float(x - w.tile_hsz), float(y - w.tile_hsz)),
+                                w.tile_sz, w.tile_sz,
+                                color='black', linewidth=0)
                 if world_clip:
                     rect.set_clip_path(world_clip)
                     rect.set_clip_box(ax.bbox)
@@ -1206,7 +1224,7 @@ def plot_topview(ax, fov, fov_t):
     ax.plot(0, 0, **OBSERVER_STYLE)
 
     # world circle
-    circle = plt.Circle((0, 0), w.world_size, **WORLD_CIRCLE_STYLE)
+    circle = Circle((0, 0), w.world_size, **WORLD_CIRCLE_STYLE)
     ax.add_patch(circle)
 
     return tv_fov_line, tv_fovt_line, tv_vp
@@ -1292,22 +1310,24 @@ def render_cv_arrays_from_d(d):
 
     # render outside the world
     if WORLD_OUTSIDE_COLOR:
-        img_rgb[d>w.world_size] = WORLD_OUTSIDE_COLOR
+        img_rgb[d>w.world_size, :] = WORLD_OUTSIDE_COLOR
 
     # render world line
     d1 = np.vstack([d[0], d[:-1]])
     wline = (d<=w.world_size)&(d1>w.world_size)
     structure = np.array([[0, 1, 0],[1, 1, 1],[0, 1, 0]], dtype=bool)
     wline = binary_dilation(wline, structure=structure)
-    img_rgb[wline]=WORLD_END_COLOR
+    # assign using integer indices to satisfy type checkers (avoid tuple[ndarray,bool] overload issues)
+    wi, wj = np.nonzero(wline)
+    img_rgb[wi, wj, :] = WORLD_END_COLOR
 
     # render display center
     c_radius2 = 5**2 
     center = (w.i**2<c_radius2)&(w.j**2<c_radius2)
-    img_rgb[center]=CENTER_COLOR
+    img_rgb[center, :] = CENTER_COLOR
 
     # show pixels seeing infinity
-    img_rgb[~valid]=WORLD_INF_COLOR
+    img_rgb[~valid, :] = WORLD_INF_COLOR
 
     fov = compute_fov(rx, ry, valid)
     return img_rgb, fov
@@ -1359,9 +1379,12 @@ def render_camera_view_arrays(t):
     structure = np.array([[0, 1, 0],[1, 1, 1],[0, 1, 0]], dtype=bool)
     wline = binary_dilation(wline, structure=structure)
 
-    img_rgb[wline]=WORLD_END_COLOR
-    img_rgb[~valid]=WORLD_INF_COLOR
-    img_rgb[center]=CENTER_COLOR
+    wi, wj = np.nonzero(wline)
+    img_rgb[wi, wj, :] = WORLD_END_COLOR
+    vi, vj = np.nonzero(~valid)
+    img_rgb[vi, vj, :] = WORLD_INF_COLOR
+    ci, cj = np.nonzero(center)
+    img_rgb[ci, cj, :] = CENTER_COLOR
 
     fov = compute_fov(rx, ry, valid)
     return img_rgb, fov
@@ -1378,15 +1401,15 @@ def plot_camera_view(ax, d):
 # 
 # outputs: x,y
 # scaling factor to reach the ground from a pixel on j-th row
-fig, axs = plt.subplots(2, 2)
-plt.subplots_adjust(left=0.1, right=0.9, bottom=0.3, top=0.9, wspace=0.2, hspace=0.2)
+fig, axs = plt.subplots(2, 2, figsize=(14, 9))
+fig.subplots_adjust(left=0.06, right=0.96, bottom=0.28, top=0.92,wspace=0.16, hspace=0.16)
 
 # --- axis for horizontal sliders ---
-ax_alpha = fig.add_axes([0.10, 0.14, 0.65, 0.03])
-ax_az   = fig.add_axes([0.10, 0.10, 0.65, 0.03])
-ax_tsunami_p = fig.add_axes([0.10, 0.06, 0.65, 0.03])
-ax_h   = fig.add_axes([0.1, 0.02, 0.65, 0.03])
-ax_method = fig.add_axes([0.8, 0.01, 0.18, 0.19])
+ax_alpha = fig.add_axes((0.10, 0.14, 0.65, 0.03))
+ax_az   = fig.add_axes((0.10, 0.10, 0.65, 0.03))
+ax_tsunami_p = fig.add_axes((0.10, 0.06, 0.65, 0.03))
+ax_h   = fig.add_axes((0.1, 0.02, 0.65, 0.03))
+ax_method = fig.add_axes((0.8, 0.01, 0.18, 0.19))
 # --- sliders ---
 s_alpha = Slider(ax_alpha, "alpha", ALPHA_FROM, ALPHA_TO,  valinit=w.alpha,  valstep=(ALPHA_TO-ALPHA_FROM)/ALPHA_NUM_STEPS)
 s_az   = Slider(ax_az,   "azimuth",  AZ_FROM, AZ_TO, valinit=w.az, valstep=AZ_STEP)
@@ -1402,6 +1425,9 @@ radio_method = RadioButtons(
 ax_method.set_title("method", fontsize=9)
 
 def update(_):
+    if tsunami is None:
+        raise RuntimeError("tsunami object is not initialized")
+
     # push slider values into model
     w.alpha = s_alpha.val
     w.az = s_az.val
@@ -1453,7 +1479,7 @@ def update(_):
     img_tsu, fov_tsu = render_cv_arrays_from_d(method())
 
     cv_t_im.set_data(img_tsu)
-    fig._suptitle.set_text(f"{tsunami.name} ({method_label()})")
+    fig.suptitle(f"{tsunami.name} ({method_label()})")
 
     # --- top view ---
     tv_fov_line.set_data(fov_plain[0], fov_plain[1])
@@ -1475,10 +1501,6 @@ def update_method(label):
 
 radio_method.on_clicked(update_method)
 
-mng = plt.get_current_fig_manager()
-mng.full_screen_toggle()
-
-
 sv_lg_data, sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data, sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data = plot_sideview(axs[1,0])
 cv_im, fov = plot_camera_view(axs[0,0], w.d)
 cv_t_im, fov_t = plot_camera_view(axs[0,1], method())
@@ -1495,7 +1517,7 @@ def save_axis_region(ax, filename):
     panel.
     """
     fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
+    renderer = fig.canvas.get_renderer()  # type: ignore
     bbox = ax.get_tightbbox(renderer)
     bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(filename, bbox_inches=bbox)
@@ -1505,6 +1527,9 @@ def save_all_panels(event):
     """
     Press 'p' to save all four displayed panels as PDF, SVG and PNG.
     """
+    if tsunami is None:
+        raise RuntimeError("tsunami object is not initialized")
+
     if event.key is None or event.key.lower() != "p":
         return
 
@@ -1543,7 +1568,33 @@ def show_contours_on_key(event):
     show_contours(d)
 
 
+def toggle_fullscreen(event):
+    if event.key is None or event.key.lower() != "f":
+        return
+
+    manager = getattr(fig.canvas, "manager", None)
+    if manager is None:
+        return
+
+    full_screen_toggle = getattr(manager, "full_screen_toggle", None)
+    if callable(full_screen_toggle):
+        full_screen_toggle()
+
+
 fig.suptitle(f"{tsunami.name} ({method_label()})", fontsize=16, y=0.98)
 fig.canvas.mpl_connect("key_press_event", save_all_panels)
 fig.canvas.mpl_connect("key_press_event", show_contours_on_key)
+fig.canvas.mpl_connect("key_press_event", toggle_fullscreen)
+
+manager = fig.canvas.manager
+window = getattr(manager, "window", None)
+
+if window is not None:
+    window.update_idletasks()
+
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    window.geometry(f"{screen_width}x{screen_height - 80}+0+0")
+
 plt.show()

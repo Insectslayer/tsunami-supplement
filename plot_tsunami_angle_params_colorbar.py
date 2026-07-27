@@ -19,6 +19,7 @@ OBSERVER_H = 100
 WORLD_SIZE = 500
 NUM_SAMPLES = 100
 
+# METHODS = ("SphericalTsunami", "ParabolicTsunami", "HyperbolicTsunami", "AngularTsunami")
 METHODS = ("SphericalTsunami", "ParabolicTsunami", "HyperbolicTsunami", "AngularTsunami")
 
 PARAMS_FILE = f"tsunami_angle_params_{WORLD_SIZE}.npz"
@@ -38,7 +39,7 @@ def create_instance(name: str):
     if name == "ParabolicTsunami":
         return ts.ParabolicTsunami(world_size=WORLD_SIZE, keep_lengths=True)
     if name == "HyperbolicTsunami":
-        return ts.HyperbolicTsunami(world_size=WORLD_SIZE, keep_lengths=True)
+        return ts.HyperbolicTsunami(a=50000, world_size=WORLD_SIZE, keep_lengths=True)
     if name == "AngularTsunami":
         return ts.AngularTsunami(world_size=WORLD_SIZE, keep_lengths=True)
     if name == "SphericalTsunami":
@@ -95,7 +96,7 @@ for method in METHODS:
     ax.plot(0, OBSERVER_H, '*r', markersize=10)
 
     plt.tight_layout()
-    # plt.show()
-    fig.savefig(f"lifting_{method[:-7].lower()}_{WORLD_SIZE}.pdf", bbox_inches="tight")
+    plt.show()
+    # fig.savefig(f"lifting_{method[:-7].lower()}_{WORLD_SIZE}.pdf", bbox_inches="tight")
     plt.close(fig)
 

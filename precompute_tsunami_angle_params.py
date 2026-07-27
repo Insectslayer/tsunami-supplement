@@ -182,7 +182,8 @@ def main() -> None:
         json.dumps(result, indent=4),
         encoding="utf-8",
     )
-    np.savez(str(OUTPUT_NPZ), **npz_data)
+    # Pass the filename positionally to avoid mypy/typing overload ambiguities.
+    np.savez(str(OUTPUT_NPZ), **npz_data) # type: ignore
 
     print(f"Saved {OUTPUT_JSON}")
     print(f"Saved {OUTPUT_NPZ}")

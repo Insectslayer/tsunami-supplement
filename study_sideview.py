@@ -40,7 +40,7 @@ AVAILABLE_METHODS = {
     4 : { "tsunami_fun" : "Spherical" },
 }
 #==== SELECT METHOD HERE ===================================================
-SELECTED_METHOD = 4
+SELECTED_METHOD = 2
 #===========================================================================
 ANGLES = np.linspace(0, 180, 1200)
 
@@ -296,7 +296,7 @@ match method_label():
     case "Parabolic":
         tsunami = ParabolicTsunami(world_size=w.world_size, keep_lengths=True)
     case "Hyperbolic":
-        tsunami = HyperbolicTsunami(a=w.world_size, world_size=w.world_size, keep_lengths=True)
+        tsunami = HyperbolicTsunami(a=000, world_size=w.world_size, keep_lengths=True)
     case "Angular":
         tsunami = AngularTsunami(world_size=w.world_size, keep_lengths=True)
     case "Spherical":
