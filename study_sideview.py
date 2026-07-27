@@ -244,6 +244,7 @@ def compute_tsunami_levels(h):
     """
     candidate_angles_deg = np.degrees(ELEVATIONS)
 
+    assert tsunami
     candidate_params = np.asarray(
         [
             tsunami.angle_to_p(h, angle_rad)
@@ -453,6 +454,7 @@ def build_tsunami_strip_evolution():
     """
     Build an RGB image using exactly the same lift levels as the slider.
     """
+    assert tsunami
     current_idx = selected_tsunami_level_idx()
 
     rows = []
