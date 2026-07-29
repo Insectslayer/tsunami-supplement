@@ -613,6 +613,42 @@ class Tsunami(ABC):
         """
         pass
 
+    @abstractmethod
+    def second_derivative_at_t(self, t: float) -> tuple[float, float]:
+        """
+        Return the second derivative of the profile.
+        """
+        pass
+
+    def signed_curvature_at_t(self, t: float) -> float:
+        dx, dz = self.derivative_at_t(t)
+        ddx, ddz = self.second_derivative_at_t(t)
+
+        speed_sq = dx * dx + dz * dz
+        if np.isclose(speed_sq, 0.0):
+            return np.nan
+
+        return (dx * ddz - dz * ddx) / speed_sq**1.5
+
+
+    def curvature_at_t(self, t: float) -> float:
+        return abs(self.signed_curvature_at_t(t))
+
+
+    def curvature_radius_at_t(self, t: float) -> float:
+        curvature = self.curvature_at_t(t)
+
+        if np.isclose(curvature, 0.0):
+            return np.inf
+
+        return 1.0 / curvature
+    
+
+    def curvature_at_distance(self, d: float) -> float:
+        t = self.s_to_t(d) if self._keep_lengths else d
+        return self.curvature_at_t(t)
+
+
     def t_to_normal(self, t: float) -> Tuple[float, float]:
         """
         returns the unit normal [nx,ny] of a ground point at distance d 
@@ -946,6 +982,9 @@ class ParabolicTsunami(Tsunami):
     def derivative_at_t(self, t: float) -> Tuple[float, float]:
         a = self.p
         return 1, 2*a*t
+    
+    def second_derivative_at_t(self, t: float) -> tuple[float, float]:
+        return 0.0, 2.0 * self.p
 
     def t_seen_in_direction(self, v: Tuple[float, float], h: float) -> float:
         v1, v2 = v
@@ -992,6 +1031,15 @@ class HyperbolicTsunami(Tsunami):
         p, a = self.p, self.a
         return 1, p**2*t/math.sqrt(p**2*t**2+a**2)
     
+    def second_derivative_at_t(self, t: float) -> tuple[float, float]:
+        p = self.p
+        a = self.a
+
+        denominator = (a**2 + p**2 * t**2)**1.5
+        if np.isclose(denominator, 0.0):
+            return 0.0, 0.0
+        return 0.0, p**2 * a**2 / denominator
+    
     def t_seen_in_direction(self, v: Tuple[float, float], h: float) -> float:
         v1, v2 = v
         p, a = self.p, self.a
@@ -1036,6 +1084,20 @@ class AngularTsunami(Tsunami):
         d3 = math.sqrt((h**2+t**2))**3
         return 2*h**3/d3, t*(3*h**2+t**2)/d3
 
+    def second_derivative_at_t(self, t: float) -> tuple[float, float]:
+        kappa = self.p
+
+        if np.isclose(kappa, 0.0):
+            return 0.0, 0.0
+
+        h_eff = 1.0 / kappa
+        denominator = (h_eff**2 + t**2) ** 2.5
+
+        ddx = -6.0 * h_eff**3 * t / denominator
+        ddz = 3.0 * h_eff**2 * (h_eff**2 - t**2) / denominator
+
+        return ddx, ddz
+
     def t_seen_in_direction(self, v: Tuple[float, float], h: float) -> float:
         v1, v2 = v
         if np.isclose(v1, 0):  # we look at the origin or in the opposite way
@@ -1045,17 +1107,49 @@ class AngularTsunami(Tsunami):
         # we need to solve quartic equation w.r.t. u, where t=u/p 
         p = self.p
         q = v1**2*(1-h*p)**2
-        cooefs = [v1**2, -4*v1*v2, 4*v2**2-2*v1**2-q, 4*v1*v2, v1**2-q]
-        # print(np.array(cooefs)*2)
-        roots = np.roots(cooefs)
+        coefficients = [v1**2, -4*v1*v2, 4*v2**2-2*v1**2-q, 4*v1*v2, v1**2-q]
+        # print(np.array(coefficients)*2)
+        roots = np.roots(coefficients)
         # take only real positive roots
-        rp_roots = np.array([r.real for r in roots 
-                             if np.isclose(r.imag, 0, atol=1e-8) and r.real>0])
-        # print(rp_roots)
+        # rp_roots = np.array([r.real for r in roots 
+        #                      if np.isclose(r.imag, 0, atol=1e-8) and r.real>0])
+        # # print(rp_roots)
         # We obtain two values and experimentally I found the following
         # decision procedure. Is it general and will it work for np.roots of
         # different/future versions?
-        return rp_roots[0 if h*p > 1 else 1]/p
+        # return rp_roots[0 if h*p > 1 else 1]/p
+
+        roots = np.roots(coefficients)
+        candidates = []
+
+        for root in roots:
+            if not np.isclose(root.imag, 0.0, atol=1e-8):
+                continue
+
+            u = float(root.real)
+            if u < 0:
+                continue
+
+            residual = (
+                v1 * (1 - h * p) * np.sqrt(1 + u**2)
+                - v1 * (1 - u**2)
+                - 2 * v2 * u
+            )
+            if not np.isclose(residual, 0.0, atol=1e-7):
+                continue
+
+            x = 2 * u / (p * np.sqrt(1 + u**2))
+            ray_parameter = x / v1
+
+            if ray_parameter >= 0:
+                candidates.append((ray_parameter, u))
+
+        if not candidates:
+            return np.inf
+
+        _, u = min(candidates)
+        return u / p
+
 
     def xy_to_p(self, x: float, y: float) -> float:
         def displacement(params):
@@ -1084,8 +1178,17 @@ class SphericalTsunami(Tsunami):
     def derivative_at_t(self, t: float) -> Tuple[float, float]:
         kappa = self.p
         alfa = t*kappa
-        return np.cos(alfa), np.sin(alfa) 
+        return np.cos(alfa), np.sin(alfa)
+    
+    def second_derivative_at_t(self, t: float) -> tuple[float, float]:
+        kappa = self.p
+        alpha = kappa * t
+
+        return -kappa * math.sin(alpha), kappa * math.cos(alpha)
         
+    def signed_curvature_at_t(self, t: float) -> float:
+        return float(self.p)
+    
     def xy_to_p(self, x: float, y: float) -> float:
         return 2*y/(x**2+y**2)
 

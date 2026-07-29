@@ -20,6 +20,7 @@ from functools import cached_property
 from pathlib import Path
 
 from tsunami import HyperbolicTsunami, AngularTsunami, ParabolicTsunami, SphericalTsunami
+from precompute_tsunami_angle_params import load_or_compute_angle_params
 
 """
 This file demonstrates projective transformations of points on a line
@@ -40,7 +41,7 @@ AVAILABLE_METHODS = {
     4 : { "tsunami_fun" : "Spherical" },
 }
 #==== SELECT METHOD HERE ===================================================
-SELECTED_METHOD = 4
+SELECTED_METHOD = 1
 #===========================================================================
 ANGLES = np.linspace(0, 180, 1200)
 
@@ -245,13 +246,20 @@ def compute_tsunami_levels(h):
     candidate_angles_deg = np.degrees(ELEVATIONS)
 
     assert tsunami
-    candidate_params = np.asarray(
-        [
-            tsunami.angle_to_p(h, angle_rad)
-            for angle_rad in ELEVATIONS
-        ],
-        dtype=float,
+    candidate_params, loaded_from_cache, cache_path = (
+        load_or_compute_angle_params(
+            tsunami,
+            h=h,
+            angles_rad=ELEVATIONS,
+            d=float(w.world_size),
+            cache_dir=Path(__file__).resolve().parent,
+        )
     )
+
+    if loaded_from_cache:
+        print(f"Loaded compatible tsunami parameters from {cache_path.name}.")
+    else:
+        print(f"Computed and cached tsunami parameters in {cache_path.name}.")
 
     active = (
         np.isfinite(candidate_params)
@@ -316,7 +324,7 @@ assert tsunami
 # tsunami.lift(tsunami_params[tsunami_idx])
 # print("done.")
 
-print("Precomputing tsunami params...")
+print("Loading or precomputing tsunami params...")
 level_angles_deg, tsunami_params = compute_tsunami_levels(w.h)
 
 delta_lift_angle = level_angles_deg[1] - level_angles_deg[0]
