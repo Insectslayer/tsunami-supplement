@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation
 from matplotlib.widgets import Slider, RadioButtons
 from matplotlib.collections import LineCollection
+from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
 from dataclasses import dataclass
 from functools import cached_property
@@ -33,6 +34,9 @@ DISPLAY_F = 0.007  # focal length (observer to display plane) in meters
 WORLD_SIZE = 500  # in meters
 TILE_SZ = WORLD_SIZE/40  # size of a tile in meters
 BORDER_SIZE = WORLD_SIZE/10  # border for ploting views (top view and side view)
+WORLD_HEIGHT = 100.0  # maximal object height measured along the ground normal
+CURVATURE_SAFETY_FACTOR = 0.9
+CURVATURE_BAND_SAMPLES = 201  # includes both 0 and WORLD_SIZE
 
 AVAILABLE_METHODS = {
     1 : { "tsunami_fun" : "Parabolic" },
@@ -41,7 +45,7 @@ AVAILABLE_METHODS = {
     4 : { "tsunami_fun" : "Spherical" },
 }
 #==== SELECT METHOD HERE ===================================================
-SELECTED_METHOD = 1
+SELECTED_METHOD = 2
 #===========================================================================
 ANGLES = np.linspace(0, 180, 1200)
 
@@ -84,6 +88,11 @@ WORLD_INF_COLOR = DARK_BLUE
 WORLD_OUTSIDE_COLOR = DARK_GREEN  # None will lead to chessboard pattern
 CENTER_COLOR = GREEN
 WORLD_END_COLOR = RED
+
+CURVATURE_BAND_FACE_COLOR = (0.2, 0.8, 0.2, 0.14)
+CURVATURE_SAFE_COLOR = (0.0, 0.65, 0.0, 0.9)
+CURVATURE_UNSAFE_COLOR = (0.9, 0.0, 0.0, 0.9)
+CURVATURE_EDGE_WIDTH = 2.0
 
 
 @dataclass
@@ -304,7 +313,7 @@ match method_label():
     case "Parabolic":
         tsunami = ParabolicTsunami(world_size=w.world_size, keep_lengths=True)
     case "Hyperbolic":
-        tsunami = HyperbolicTsunami(a=000, world_size=w.world_size, keep_lengths=True)
+        tsunami = HyperbolicTsunami(a=00, world_size=w.world_size, keep_lengths=True)
     case "Angular":
         tsunami = AngularTsunami(world_size=w.world_size, keep_lengths=True)
     case "Spherical":
@@ -385,6 +394,92 @@ def plot_sideview_chessboard_line(ax, dists, x, y):
     return lc
 
 
+def curvature_band_data():
+    """
+    Compute the curvature-limited world-height band in the modelled world.
+
+    The requested band width is ``WORLD_HEIGHT``. At each ground point it is
+    limited to ``CURVATURE_SAFETY_FACTOR * radius``. Consequently, the outer
+    edge is green where the full world height is admissible and red where the
+    curvature radius forces the band to be narrower.
+    """
+    assert tsunami
+
+    # Use a dedicated sampling that includes both boundaries exactly.
+    # ``w.ground`` contains tile-centre positions and therefore generally
+    # starts after 0 and ends before WORLD_SIZE.
+    dists = np.linspace(
+        0.0,
+        float(w.world_size),
+        CURVATURE_BAND_SAMPLES,
+        dtype=float,
+    )
+
+    x, y, nx, ny, _, radius = tsunami.ground_geometry(dists)
+
+    safe_height = CURVATURE_SAFETY_FACTOR * radius
+    full_height_fits = WORLD_HEIGHT <= safe_height
+    band_height = np.minimum(WORLD_HEIGHT, safe_height)
+
+    # Infinite radii correspond to a locally flat profile.
+    band_height[~np.isfinite(band_height)] = WORLD_HEIGHT
+
+    outer_x = x + band_height * nx
+    outer_y = y + band_height * ny
+
+    polygon = np.column_stack((
+        np.concatenate((x, outer_x[::-1])),
+        np.concatenate((y, outer_y[::-1])),
+    ))
+
+    edge_segments = np.stack(
+        (
+            np.column_stack((outer_x[:-1], outer_y[:-1])),
+            np.column_stack((outer_x[1:], outer_y[1:])),
+        ),
+        axis=1,
+    )
+    edge_safe = full_height_fits[:-1] & full_height_fits[1:]
+    edge_colors = [
+        CURVATURE_SAFE_COLOR if is_safe else CURVATURE_UNSAFE_COLOR
+        for is_safe in edge_safe
+    ]
+
+    return polygon, edge_segments, edge_colors
+
+
+def add_curvature_band(ax):
+    """Create artists visualising the curvature-limited world height."""
+    polygon, edge_segments, edge_colors = curvature_band_data()
+
+    patch = Polygon(
+        polygon,
+        closed=True,
+        facecolor=CURVATURE_BAND_FACE_COLOR,
+        edgecolor='none',
+        zorder=0.5,
+    )
+    ax.add_patch(patch)
+
+    edge = LineCollection(
+        edge_segments,
+        colors=edge_colors,
+        linewidths=CURVATURE_EDGE_WIDTH,
+        zorder=1.5,
+    )
+    ax.add_collection(edge)
+
+    return patch, edge
+
+
+def update_curvature_band(patch, edge):
+    """Update curvature-band artists after changing the uplift."""
+    polygon, edge_segments, edge_colors = curvature_band_data()
+    patch.set_xy(polygon)
+    edge.set_segments(edge_segments)
+    edge.set_color(edge_colors)
+
+
 def point_at_ground(p0, p1, range_x, range_y):
     """
     returns a point on the ground in the sideview for the viewing direction 
@@ -421,6 +516,7 @@ def plot_sideview(ax):
     )
     assert tsunami
     x, y = tsunami.uplift_ground(w.ground)
+    sv_curvature_patch, sv_curvature_edge = add_curvature_band(ax)
     sv_lg_data = plot_sideview_chessboard_line(ax, w.ground, x, y)
 
     # plot world_size
@@ -447,7 +543,11 @@ def plot_sideview(ax):
     #ax.grid(True, which='both', color='gray', linestyle='--', linewidth=0.5)
     ax.set_aspect('equal')
     #plt.show()
-    return sv_lg_data, sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data, sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data
+    return (
+        sv_lg_data, sv_curvature_patch, sv_curvature_edge,
+        sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data,
+        sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data,
+    )
 
 
 def tsunami_strip_colors():
@@ -887,6 +987,7 @@ def update(_):
     segments = [[(x[i], y[i]), (x[i + 1], y[i + 1])] for i in range(len(x) - 1)]
     sv_lg_data.set_segments(segments)
     sv_lg_data.set_color(sideview_segment_colors(w.ground))
+    update_curvature_band(sv_curvature_patch, sv_curvature_edge)
     sv_wp_data.set_data((w.world_size,), (0,))
     x, y = tsunami.d_to_xy(w.world_size)
     sv_twp_data.set_data((x,), (y,))
@@ -935,7 +1036,9 @@ assert mng
 mng.full_screen_toggle()
 
 (
-    sv_lg_data, 
+    sv_lg_data,
+    sv_curvature_patch,
+    sv_curvature_edge,
     sv_wp_data, 
     sv_twp_data, 
     sv_op_data, 

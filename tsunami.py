@@ -644,9 +644,64 @@ class Tsunami(ABC):
         return 1.0 / curvature
     
 
+    def distance_to_t(self, d: float) -> float:
+        """Convert an original ground distance to the profile parameter."""
+        return self.s_to_t(d) if self._keep_lengths else d
+
+
     def curvature_at_distance(self, d: float) -> float:
-        t = self.s_to_t(d) if self._keep_lengths else d
+        t = self.distance_to_t(d)
         return self.curvature_at_t(t)
+
+
+    def ground_geometry(
+            self,
+            dists: Sequence[float],
+            ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                       np.ndarray, np.ndarray]:
+        """
+        Evaluate lifted points, unit normals, curvatures, and curvature radii.
+
+        Each original ground distance is converted to the native profile
+        parameter only once. This keeps the geometric quantities mutually
+        consistent and avoids repeating the arc-length inversion separately
+        for coordinates, normals, and curvature.
+
+        Returns
+        -------
+        x, y, nx, ny, curvature, radius
+            One-dimensional NumPy arrays aligned with ``dists``. Curvature is
+            non-negative; a flat profile has an infinite curvature radius.
+        """
+        x_out: list[float] = []
+        y_out: list[float] = []
+        nx_out: list[float] = []
+        ny_out: list[float] = []
+        curvature_out: list[float] = []
+        radius_out: list[float] = []
+
+        for d in dists:
+            t = self.distance_to_t(float(d))
+            x, y = self.t_to_xy(t)
+            nx, ny = self.t_to_normal(t)
+            curvature = self.curvature_at_t(t)
+            radius = np.inf if np.isclose(curvature, 0.0) else 1.0 / curvature
+
+            x_out.append(float(x))
+            y_out.append(float(y))
+            nx_out.append(float(nx))
+            ny_out.append(float(ny))
+            curvature_out.append(float(curvature))
+            radius_out.append(float(radius))
+
+        return (
+            np.asarray(x_out, dtype=float),
+            np.asarray(y_out, dtype=float),
+            np.asarray(nx_out, dtype=float),
+            np.asarray(ny_out, dtype=float),
+            np.asarray(curvature_out, dtype=float),
+            np.asarray(radius_out, dtype=float),
+        )
 
 
     def t_to_normal(self, t: float) -> Tuple[float, float]:
@@ -1029,7 +1084,37 @@ class HyperbolicTsunami(Tsunami):
 
     def derivative_at_t(self, t: float) -> Tuple[float, float]:
         p, a = self.p, self.a
-        return 1, p**2*t/math.sqrt(p**2*t**2+a**2)
+
+        # For a == 0, the hyperbola degenerates to the straight half-line
+        # z = |p t|. The tsunami profile is used for t >= 0, hence z = p t
+        # for the non-negative lifting parameters considered here.
+        if np.isclose(a, 0.0):
+            return 1.0, float(p)
+
+        denominator = math.sqrt(p**2 * t**2 + a**2)
+        return 1.0, p**2 * t / denominator
+
+    def s_to_t(self, s: float) -> float:
+        """Convert arc length to profile parameter.
+
+        The degenerate case ``a == 0`` is a straight line and therefore has
+        the exact arc-length relation ``s = t * sqrt(1 + p**2)``. Handling it
+        explicitly avoids the undefined derivative 0/0 at the origin and
+        unnecessary numerical integration.
+        """
+        if np.isclose(self.a, 0.0):
+            return float(s) / math.sqrt(1.0 + self.p**2)
+        return super().s_to_t(s)
+
+    def s_to_xy(self, s: float) -> Tuple[float, float]:
+        if np.isclose(self.a, 0.0):
+            return self.t_to_xy(self.s_to_t(s))
+        return super().s_to_xy(s)
+
+    def arc_length(self, t_end: float) -> float:
+        if np.isclose(self.a, 0.0):
+            return float(t_end) * math.sqrt(1.0 + self.p**2)
+        return super().arc_length(t_end)
     
     def second_derivative_at_t(self, t: float) -> tuple[float, float]:
         p = self.p
@@ -1044,17 +1129,59 @@ class HyperbolicTsunami(Tsunami):
         v1, v2 = v
         p, a = self.p, self.a
         
-        if v2 >= p*v1:  # we are looking above the horizont
+        # Flat profile. This case occurs for p == 0 independently of a.
+        # Handle it explicitly: the general hyperbolic formula suffers from
+        # cancellation near the horizon and may return invalid intersections.
+        if np.isclose(p, 0.0):
+            if v2 >= 0.0:
+                return np.inf
+            if np.isclose(v1, 0.0):
+                return 0.0
+            return float(-v1 * h / v2)
+
+        # For a == 0, the profile degenerates to the straight half-line
+        # z = p t. Its intersection with the viewing ray is available in a
+        # simple and numerically stable closed form.
+        if np.isclose(a, 0.0):
+            denominator = p * v1 - v2
+            if denominator <= 0.0:
+                return np.inf
+            if np.isclose(v1, 0.0):
+                return 0.0
+            return float(h * v1 / denominator)
+
+        if v2 >= p * v1:  # ray points along or above the asymptote
             return np.inf
-        if np.isclose(v1, 0):  # we are looking to the origin
-            return 0  # np.inf was returned above if v2 > 0
-        tg = v2/v1
-        c1 = p**2-tg**2
-        c2 = (a+h)*tg 
-        if np.isclose(c1, 0):
-            return -h*(h+2*a)/2/c2
-        else:
-            return (c2+math.sqrt(c2**2+h*(2*a+h)*c1))/c1
+        if np.isclose(v1, 0.0):
+            return 0.0
+
+        tg = v2 / v1
+        c1 = p**2 - tg**2
+        c2 = (a + h) * tg
+
+        if np.isclose(c1, 0.0):
+            return float(-h * (h + 2 * a) / (2 * c2))
+
+        discriminant = c2**2 + h * (2 * a + h) * c1
+        # Suppress tiny negative values caused only by roundoff.
+        if discriminant < 0.0 and np.isclose(discriminant, 0.0):
+            discriminant = 0.0
+        if discriminant < 0.0:
+            return np.inf
+
+        return float((c2 + math.sqrt(discriminant)) / c1)
+    
+    # if v2 >= p*v1:  # we are looking above the horizont
+    #         return np.inf
+    #     if np.isclose(v1, 0):  # we are looking to the origin
+    #         return 0  # np.inf was returned above if v2 > 0
+    #     tg = v2/v1
+    #     c1 = p**2-tg**2
+    #     c2 = (a+h)*tg 
+    #     if np.isclose(c1, 0):
+    #         return -h*(h+2*a)/2/c2
+    #     else:
+    #         return (c2+math.sqrt(c2**2+h*(2*a+h)*c1))/c1
 
     def xy_to_p(self, x: float, y: float) -> float:
         return math.sqrt(y*(y+2*self.a))/x
