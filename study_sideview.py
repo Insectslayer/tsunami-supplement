@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 #from scipy.ndimage import minimum_filter, maximum_filter
 from scipy.ndimage import binary_dilation
 from matplotlib.widgets import Slider, RadioButtons
-from matplotlib.collections import LineCollection
+from matplotlib.collections import LineCollection, PolyCollection
 from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
 from dataclasses import dataclass
@@ -34,7 +34,7 @@ DISPLAY_F = 0.007  # focal length (observer to display plane) in meters
 WORLD_SIZE = 500  # in meters
 TILE_SZ = WORLD_SIZE/40  # size of a tile in meters
 BORDER_SIZE = WORLD_SIZE/10  # border for ploting views (top view and side view)
-WORLD_HEIGHT = 100.0  # maximal object height measured along the ground normal
+WORLD_HEIGHT = 50.0  # maximal object height measured along the ground normal
 CURVATURE_SAFETY_FACTOR = 0.9
 CURVATURE_BAND_SAMPLES = 201  # includes both 0 and WORLD_SIZE
 
@@ -45,7 +45,7 @@ AVAILABLE_METHODS = {
     4 : { "tsunami_fun" : "Spherical" },
 }
 #==== SELECT METHOD HERE ===================================================
-SELECTED_METHOD = 2
+SELECTED_METHOD = 1
 #===========================================================================
 ANGLES = np.linspace(0, 180, 1200)
 
@@ -91,6 +91,7 @@ WORLD_END_COLOR = RED
 
 CURVATURE_BAND_FACE_COLOR = (0.2, 0.8, 0.2, 0.14)
 CURVATURE_SAFE_COLOR = (0.0, 0.65, 0.0, 0.9)
+CURVATURE_UNSAFE_FACE_COLOR = (1.0, 0.2, 0.2, 0.22)
 CURVATURE_UNSAFE_COLOR = (0.9, 0.0, 0.0, 0.9)
 CURVATURE_EDGE_WIDTH = 2.0
 
@@ -402,12 +403,20 @@ def curvature_band_data():
     limited to ``CURVATURE_SAFETY_FACTOR * radius``. Consequently, the outer
     edge is green where the full world height is admissible and red where the
     curvature radius forces the band to be narrower.
+
+    Returns
+    -------
+    polygon : (N, 2) array
+        Polygon of the whole band.
+    edge_segments : (M, 2, 2) array
+        Segments of the outer boundary.
+    edge_colors : list
+        Colors of the outer-boundary segments.
+    unsafe_quads : list of (4, 2) arrays
+        Quadrilateral strips where the requested world height does not fit.
     """
     assert tsunami
 
-    # Use a dedicated sampling that includes both boundaries exactly.
-    # ``w.ground`` contains tile-centre positions and therefore generally
-    # starts after 0 and ends before WORLD_SIZE.
     dists = np.linspace(
         0.0,
         float(w.world_size),
@@ -439,18 +448,32 @@ def curvature_band_data():
         ),
         axis=1,
     )
+
     edge_safe = full_height_fits[:-1] & full_height_fits[1:]
     edge_colors = [
         CURVATURE_SAFE_COLOR if is_safe else CURVATURE_UNSAFE_COLOR
         for is_safe in edge_safe
     ]
 
-    return polygon, edge_segments, edge_colors
+    unsafe_quads = []
+    for i in range(len(x) - 1):
+        if edge_safe[i]:
+            continue
+
+        quad = np.array([
+            [x[i],       y[i]],
+            [x[i + 1],   y[i + 1]],
+            [outer_x[i + 1], outer_y[i + 1]],
+            [outer_x[i],     outer_y[i]],
+        ])
+        unsafe_quads.append(quad)
+
+    return polygon, edge_segments, edge_colors, unsafe_quads
 
 
 def add_curvature_band(ax):
     """Create artists visualising the curvature-limited world height."""
-    polygon, edge_segments, edge_colors = curvature_band_data()
+    polygon, edge_segments, edge_colors, unsafe_quads = curvature_band_data()
 
     patch = Polygon(
         polygon,
@@ -461,6 +484,14 @@ def add_curvature_band(ax):
     )
     ax.add_patch(patch)
 
+    unsafe_fill = PolyCollection(
+        unsafe_quads,
+        facecolors=CURVATURE_UNSAFE_FACE_COLOR,
+        edgecolors='none',
+        zorder=0.8,
+    )
+    ax.add_collection(unsafe_fill)
+
     edge = LineCollection(
         edge_segments,
         colors=edge_colors,
@@ -469,13 +500,14 @@ def add_curvature_band(ax):
     )
     ax.add_collection(edge)
 
-    return patch, edge
+    return patch, unsafe_fill, edge
 
 
-def update_curvature_band(patch, edge):
+def update_curvature_band(patch, unsafe_fill, edge):
     """Update curvature-band artists after changing the uplift."""
-    polygon, edge_segments, edge_colors = curvature_band_data()
+    polygon, edge_segments, edge_colors, unsafe_quads = curvature_band_data()
     patch.set_xy(polygon)
+    unsafe_fill.set_verts(unsafe_quads)
     edge.set_segments(edge_segments)
     edge.set_color(edge_colors)
 
@@ -516,7 +548,7 @@ def plot_sideview(ax):
     )
     assert tsunami
     x, y = tsunami.uplift_ground(w.ground)
-    sv_curvature_patch, sv_curvature_edge = add_curvature_band(ax)
+    sv_curvature_patch, sv_curvature_unsafe_fill, sv_curvature_edge = add_curvature_band(ax)
     sv_lg_data = plot_sideview_chessboard_line(ax, w.ground, x, y)
 
     # plot world_size
@@ -544,7 +576,7 @@ def plot_sideview(ax):
     ax.set_aspect('equal')
     #plt.show()
     return (
-        sv_lg_data, sv_curvature_patch, sv_curvature_edge,
+        sv_lg_data, sv_curvature_patch, sv_curvature_unsafe_fill, sv_curvature_edge,
         sv_wp_data, sv_twp_data, sv_op_data, sv_vp_data,
         sv_vtp1_data, sv_vtp2_data, sv_vaxis_data, sv_vangle_data,
     )
@@ -987,7 +1019,7 @@ def update(_):
     segments = [[(x[i], y[i]), (x[i + 1], y[i + 1])] for i in range(len(x) - 1)]
     sv_lg_data.set_segments(segments)
     sv_lg_data.set_color(sideview_segment_colors(w.ground))
-    update_curvature_band(sv_curvature_patch, sv_curvature_edge)
+    update_curvature_band(sv_curvature_patch, sv_curvature_unsafe_fill, sv_curvature_edge)
     sv_wp_data.set_data((w.world_size,), (0,))
     x, y = tsunami.d_to_xy(w.world_size)
     sv_twp_data.set_data((x,), (y,))
@@ -1038,6 +1070,7 @@ mng.full_screen_toggle()
 (
     sv_lg_data,
     sv_curvature_patch,
+    sv_curvature_unsafe_fill,
     sv_curvature_edge,
     sv_wp_data, 
     sv_twp_data, 
