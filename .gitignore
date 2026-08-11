@@ -1,0 +1,33 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python / Conda environments
+.venv/
+venv/
+env/
+.conda/
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test / tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Tsunami parameter caches
+tsunami_angle_params_*.npz
+
+# Generated figures and exports
+saved_panels/
+distance_change_plots/
+lifting_*_coverage_*.pdf
+
+# OS metadata
+.DS_Store
+Thumbs.db
