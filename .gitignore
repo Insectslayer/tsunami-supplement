@@ -31,3 +31,8 @@ lifting_*_coverage_*.pdf
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Web build tooling
+build/node_modules/
+build/screenshots/
+build/reference.json

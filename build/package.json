@@ -1,0 +1,11 @@
+{
+  "name": "tsunami-appendix-build",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Build tooling for the interactive tsunami appendix page",
+  "type": "commonjs",
+  "dependencies": {
+    "katex": "^0.16.11",
+    "puppeteer": "^25.7.0"
+  }
+}

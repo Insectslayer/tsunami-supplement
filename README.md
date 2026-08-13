@@ -17,6 +17,22 @@ The project implements several one-dimensional uplift profiles and applies them 
 - `plot_*.py` — scripts used for analysis and generation of figures.
 - `description.qmd` — working text/notes accompanying the project.
 
+## Interactive appendix (web)
+
+`web/index.html` recreates the appendix of `paper/main.md` as an interactive page: the text is unchanged, and
+each static figure is replaced by a live construction that responds to a profile selector and an uplift slider
+shared by every figure. Open it directly in a browser — no server needed. `web/appendix.html` is the same page
+as a single self-contained file.
+
+Rebuild it after editing the paper or anything under `web/`:
+
+```bash
+cd build && npm install       # first time: katex (build) and puppeteer (checks)
+node build/convert.js         # appendix text -> web/content.html
+node build/assemble.js        # -> web/index.html and web/appendix.html
+node build/check.js           # headless render check, both themes
+```
+
 ## Installation
 
 The recommended way to run the project is with Conda or Miniconda.

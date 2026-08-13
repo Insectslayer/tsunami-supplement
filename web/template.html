@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tsunami Transformations</title>
+<meta name="description" content="An interactive companion to the appendix on tsunami transformations: uplifting a flat ground so distant regions become more visible to an observer.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127754;</text></svg>">
+<!--STYLES-->
+</head>
+<body>
+
+<div class="controlbar" id="controlbar" role="region" aria-label="Global transformation controls"></div>
+
+<header class="masthead">
+  <p class="eyebrow">Interactive appendix</p>
+  <h1>Tsunami transformations</h1>
+  <p class="lede">
+    Uplifting distant regions of a scene so they become more visible to an observer. Every figure below is live:
+    the profile and the uplift slider at the top of the page drive all of them at once, so the same transformation
+    can be followed from a single curve in a vertical plane through to a rendered camera view.
+  </p>
+  <div class="meta">
+    <span>Four uplift profiles — parabolic, hyperbolic, angular, spherical</span>
+    <span>World radius 500 m · observer at 100 m</span>
+  </div>
+</header>
+
+<nav class="toc" id="toc" aria-label="Contents"></nav>
+
+<main class="paper">
+<!--CONTENT-->
+</main>
+
+<footer class="page-footer">
+  <p>
+    The text is the appendix as written; the figures replace the static images with live constructions computed in
+    the browser from the same formulas. The profile mathematics is a port of <code>tsunami.py</code>, checked
+    against values produced by that implementation and against tight-tolerance quadrature.
+  </p>
+  <p>
+    Uplift is parametrised by the transformed boundary angle α′_w rather than by p directly, so that all four
+    profiles are always compared at the same amount of visible spreading; the corresponding p is shown beside the
+    slider.
+  </p>
+</footer>
+
+<!--SCRIPTS-->
+</body>
+</html>
