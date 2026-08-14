@@ -75,12 +75,11 @@
   }
 
   /* ================================================================ *
-   * Figures 40–48 — the three extensions side by side
+   * the three extensions side by side
    * ================================================================ */
 
   figures['extensions-2d'] = (slot) =>
     createFigure(slot, {
-      number: 'Figures 40–48',
       title: 'Radial, directional and mixed uplifting',
       note:
         'The same one-dimensional profile extended over the plane in three ways. The camera views show what the ' +
@@ -157,7 +156,7 @@
         { label: 'world boundary in the image', color: 'var(--text-primary)' },
       ],
       caption:
-        'Figures 40–48: the radial construction is rotationally symmetric and bends structures perpendicular to ' +
+        'the radial construction is rotationally symmetric and bends structures perpendicular to ' +
         'the viewing direction; the directional construction is cylindrical and keeps them straight but singles ' +
         'out one horizontal direction; μ interpolates the two ray-distance fields reciprocally.',
     });
@@ -271,12 +270,11 @@
   }
 
   /* ================================================================ *
-   * Figures 49–60 — the four profiles compared under mixed uplifting
+   * the four profiles compared under mixed uplifting
    * ================================================================ */
 
   figures.comparison = (slot) =>
     createFigure(slot, {
-      number: 'Figures 49–60',
       title: 'The four profiles under mixed uplifting',
       note:
         'Camera view, ground reached, and side profile for each transformation at the same transformed boundary ' +
@@ -343,7 +341,7 @@
         color: `var(--series-${PROFILE_SLOT[name] + 1})`,
       })),
       caption:
-        'Figures 49–60: the same scene under each transformation, all at the current α′_w and mixed uplifting.',
+        'the same scene under each transformation, all at the current α′_w and mixed uplifting.',
     });
 
   function drawComparisonCamera(plot, context, name) {

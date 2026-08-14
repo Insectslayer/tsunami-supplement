@@ -3,10 +3,11 @@
  *
  * The prose is preserved verbatim. Only the markup around it changes:
  *   - $...$ / $$...$$ are pre-rendered with KaTeX,
- *   - pandoc cross-reference links keep their printed number and point at the
- *     matching interactive figure,
  *   - an `@@figure:<name>@@` anchor line becomes a slot that app.js fills with
- *     the interactive visualisation registered under that name in web/js.
+ *     the interactive visualisation registered under that name in web/js,
+ *   - figures are numbered by the order of those anchors, and an inline
+ *     `@@ref:<name>@@` prints the number the figure was given,
+ *   - pandoc's remaining section links keep their printed number.
  */
 'use strict';
 
@@ -25,29 +26,13 @@ const FIGURE_ANCHOR = /^@@figure:([a-z0-9-]+)@@$/;
 const LEFTOVER_MARKUP = /^\s*<(figure|embed|img|figcaption)\b/;
 
 /*
- * Anchor targets for pandoc's `Figure [n](#id)` references.
- *
- * Only ids that do not slugify to their own anchor are listed: a reference is
- * resolved by replacing `:` with `-` (which is what section headings and the
- * parameter table get), so `sec:1d_tsunami` finds `sec-1d_tsunami` by itself.
- * The entries below are the figures the paper split into subfigures — each one
- * points at the interactive figure that now shows the same thing.
+ * Inline `@@ref:<name>@@` reference to the figure anchored under that name.
+ * It prints the figure's number, so the prose never spells one out.
  */
-const REFERENCE_TARGETS = {
-  'fig:lifting_transformations': 'fig-profiles',
-  'fig:angular_tsunami': 'fig-angular-construction',
-  'fig:lifting_in_space': 'fig-extensions-2d',
-  'fig:camera_original': 'fig-extensions-2d',
-  'fig:parabolic_radial': 'fig-extensions-2d',
-  'fig:parabolic_directional': 'fig-extensions-2d',
-  'fig:parabolic_mixed': 'fig-extensions-2d',
-  'fig:parabolic_sideview': 'fig-extensions-2d',
-  'fig:parabolic_radial_topview': 'fig-extensions-2d',
-  'fig:parabolic_directional_topview': 'fig-extensions-2d',
-  'fig:parabolic_mixed_topview': 'fig-extensions-2d',
-  'fig:zero_planes': 'fig-zero-plane',
-  'fig:curvature_band': 'fig-curvature-band',
-};
+const FIGURE_REFERENCE = /@@ref:([a-z0-9-]+)@@/g;
+
+/* name -> printed number, in the order the anchors appear in the source. */
+const figureNumbers = new Map();
 
 const MATH_MACROS = {
   '\\ensuremath': '#1',
@@ -83,14 +68,36 @@ function escapeHtml(text) {
  * ------------------------------------------------------------------ */
 
 function convertReferences(text) {
-  // [1](#fig:notation){reference-type="ref" reference="fig:notation"}
+  // Section [10.2](#sec:computational_remarks){reference-type="ref" ...}
   return text.replace(
     /\[([^\]]*)\]\(#([^)]+)\)(?:\{[^}]*\})?/g,
-    (match, label, target) => {
-      const anchor = REFERENCE_TARGETS[target] || target.replace(/:/g, '-');
-      return `<a class="xref" href="#${anchor}">${label}</a>`;
-    }
+    (match, label, target) =>
+      `<a class="xref" href="#${target.replace(/:/g, '-')}">${label}</a>`
   );
+}
+
+/** `@@ref:profiles@@` -> a link printing the number that figure was given. */
+function convertFigureReferences(text) {
+  return text.replace(FIGURE_REFERENCE, (match, name) => {
+    const number = figureNumbers.get(name);
+    if (!number) {
+      throw new Error(
+        `${match} refers to a figure that is not anchored in the source. ` +
+          `Known figures: ${[...figureNumbers.keys()].join(', ')}`
+      );
+    }
+    return `<a class="xref" href="#fig-${name}">${number}</a>`;
+  });
+}
+
+/** Numbers the figures by the order their anchors appear in the source. */
+function numberFigures(blocks) {
+  figureNumbers.clear();
+  blocks.forEach((block) => {
+    if (block.type !== 'marker') return;
+    const anchor = block.value.match(FIGURE_ANCHOR);
+    if (anchor) figureNumbers.set(anchor[1], figureNumbers.size + 1);
+  });
 }
 
 function convertEmphasis(text) {
@@ -162,6 +169,7 @@ function convertInlineText(text) {
     .map((chunk) => {
       if (chunk.type === 'math') return renderMath(chunk.value, false);
       let value = escapeHtml(chunk.value);
+      value = convertFigureReferences(value);
       value = convertReferences(value);
       value = convertEmphasis(value);
       return value;
@@ -256,7 +264,9 @@ function blockify(lines) {
       flush();
       continue;
     }
-    if (trimmed.startsWith('@@')) {
+    // Only a whole line is a marker; an @@ref:...@@ that happens to start a
+    // line is prose and is converted inline.
+    if (trimmed === '@@TABLE@@' || FIGURE_ANCHOR.test(trimmed)) {
       flush();
       blocks.push({ type: 'marker', value: trimmed });
       continue;
@@ -358,7 +368,11 @@ function render(blocks) {
 }
 
 function figureSlot(name) {
-  return `<figure class="fig-slot" id="fig-${name}" data-figure="${name}"></figure>`;
+  const number = figureNumbers.get(name);
+  return (
+    `<figure class="fig-slot" id="fig-${name}" data-figure="${name}" ` +
+    `data-number="${number}"></figure>`
+  );
 }
 
 function main() {
@@ -368,12 +382,13 @@ function main() {
   lines = stripDivBlock(lines);
 
   const blocks = blockify(lines);
+  numberFigures(blocks);
   const html = render(blocks);
   fs.writeFileSync(OUTPUT, `${html}\n`, 'utf8');
 
-  const slots = [...html.matchAll(/data-figure="([^"]+)"/g)].map((m) => m[1]);
+  const numbered = [...figureNumbers].map(([name, number]) => `${number} ${name}`);
   console.log(`Wrote ${OUTPUT}`);
-  console.log(`  ${blocks.length} blocks, ${slots.length} figure slots: ${slots.join(', ')}`);
+  console.log(`  ${blocks.length} blocks, ${figureNumbers.size} figures: ${numbered.join(', ')}`);
 }
 
 main();

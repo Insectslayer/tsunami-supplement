@@ -70,9 +70,14 @@ Where a figure belongs is decided in the markdown: a line reading `@@figure:<nam
 `app.js` fills with the builder registered under `<name>` in `web/js/figures-*.js` (grep `figures.` there for
 the current list). Moving a figure means moving its anchor line; `convert.js` knows nothing about the figures
 beyond the anchor name, and refuses to build if `<figure>`/`<embed>`/`<img>` markup reappears in `main.md`.
-An anchor with no builder is not caught at build time — `check.js` reports it. Prose cross-references still
-use the paper's pandoc ids, resolved by `REFERENCE_TARGETS` (subfigure id → interactive figure) or by
-slugifying `:` to `-`.
+An anchor with no builder is not caught at build time — `check.js` reports it.
+
+Figure numbers are derived, never written down: `convert.js` numbers the anchors 1..n in source order, puts
+the number on the slot as `data-number`, and `figure-kit.js` reads it for both the figure heading and the
+caption prefix. In the prose, an inline `@@ref:<name>@@` prints that number as a link — so reordering the
+anchors renumbers the figures and every citation at once, and a `@@ref:@@` to a figure that is not anchored
+fails the build. Section and table cross-references are still pandoc links carrying a hardcoded number
+(`Section [10.2](#sec:computational_remarks){…}`), resolved by slugifying `:` to `-`.
 
 `web/appendix.html` is a single self-contained file (CSS, JS and KaTeX fonts inlined) for sharing; `index.html`
 links the same assets. `build/reference.py` regenerates `reference.json` and needs numpy/scipy/trimesh.

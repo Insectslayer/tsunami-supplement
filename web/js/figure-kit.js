@@ -129,7 +129,6 @@
   /**
    * @param {HTMLElement} slot          the <figure> placeholder in the text
    * @param {object} spec
-   *   number     printed figure number, matching the paper's reference
    *   title      short heading
    *   note       one-paragraph explanation of what is being shown
    *   controls   array of control specs (range / checkbox / segmented)
@@ -138,7 +137,7 @@
    *   panels     array of panel specs { key, title, aspect, equalAspect,
    *              margin, colour, draw(plot, context), hover(event, context) }
    *   legend     array of { label, color, kind }
-   *   caption    text under the figure
+   *   caption    text under the figure, prefixed with the figure number
    *   table      function returning { columns, rows } for the table view
    *   global     true when the figure follows the global profile/uplift state
    */
@@ -159,8 +158,12 @@
     slot._figure = figure;
     slot.innerHTML = '';
 
+    // The number comes from the slot: convert.js numbers the figures by the
+    // order of their anchors in paper/main.md, which is what the prose cites.
+    const label = slot.dataset.number ? `Figure ${slot.dataset.number}` : null;
+
     const head = element('div', 'fig-head');
-    if (spec.number) head.appendChild(element('span', 'fig-number', spec.number));
+    if (label) head.appendChild(element('span', 'fig-number', label));
     head.appendChild(element('h3', 'fig-title', spec.title));
     slot.appendChild(head);
 
@@ -261,7 +264,10 @@
       });
     }
 
-    if (spec.caption) slot.appendChild(element('p', 'fig-caption', spec.caption));
+    if (spec.caption) {
+      const caption = label ? `${label}: ${spec.caption}` : spec.caption;
+      slot.appendChild(element('p', 'fig-caption', caption));
+    }
 
     figure.context = () => ({
       state,

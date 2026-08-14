@@ -60,12 +60,11 @@
   }
 
   /* ================================================================ *
-   * Figure 1 — notation
+   * notation
    * ================================================================ */
 
   figures.notation = (slot) =>
     createFigure(slot, {
-      number: 'Figure 1',
       title: 'The observer, the world and the camera',
       note:
         'The geometry of Table 1. Drag the viewing direction α to sweep the camera through the vertical plane; ' +
@@ -148,7 +147,7 @@
         { label: 'field of view', color: 'var(--text-muted)', kind: 'dashed' },
       ],
       caption:
-        'Figure 1: a side view of the world, a top-down view of the plane with a square grid, and the camera view. ' +
+        'a side view of the world, a top-down view of the plane with a square grid, and the camera view. ' +
         'The observer sits at Q = (0, 0, h); α is measured from the downward vertical, so α = 90° looks at the horizon.',
     });
 
@@ -357,12 +356,11 @@
   }
 
   /* ================================================================ *
-   * Figure 16 — the four lifting transformations
+   * the four lifting transformations
    * ================================================================ */
 
   figures.profiles = (slot) =>
     createFigure(slot, {
-      number: 'Figures 12–16',
       title: 'The four uplift profiles',
       note:
         'Each panel uplifts the same world of radius 500 m, with arc length preserved. Faint curves are earlier ' +
@@ -390,7 +388,7 @@
         { label: 'ray to the world boundary', color: 'var(--status-critical)', kind: 'dashed' },
       ],
       caption:
-        'Figures 12–16: a world of radius 500 m uplifted by each transformation for increasing α′_w. ' +
+        'a world of radius 500 m uplifted by each transformation for increasing α′_w. ' +
         'The arc length from the origin is the same on every curve, so the boundary marker always sits ' +
         '500 m along the profile.',
       table: (context) => {
@@ -489,12 +487,11 @@
   }
 
   /* ================================================================ *
-   * Figure 18 — the angular construction
+   * the angular construction
    * ================================================================ */
 
   figures['angular-construction'] = (slot) =>
     createFigure(slot, {
-      number: 'Figures 17–18',
       title: 'The angular construction: d′ = d, α′ = 2α',
       note:
         'The angular transformation keeps the distance from an effective observer at height h′ = 1/p and doubles ' +
@@ -528,7 +525,7 @@
         { label: 'equal distance d′', color: 'var(--text-muted)', kind: 'dashed' },
       ],
       caption:
-        'Figures 17–18: the point (s, 0) is seen from the effective observer (0, h′) at angle α and distance d′. ' +
+        'the point (s, 0) is seen from the effective observer (0, h′) at angle α and distance d′. ' +
         'Its image lies at the same distance d′ but at angle 2α, which is what spreads the ground over the full ' +
         'angular range.',
     });
@@ -639,14 +636,13 @@
   }
 
   /* ================================================================ *
-   * Figures 19–23 — field of view coverage
+   * field of view coverage
    * ================================================================ */
 
   const COVERAGE_LEVEL_STEP = 8;
 
   figures.coverage = (slot) =>
     createFigure(slot, {
-      number: 'Figures 19–23',
       title: 'How far the observer sees in each direction',
       note:
         'The visible ground distance as a function of the viewing angle α. Faint curves are lower uplift levels; ' +
@@ -671,7 +667,7 @@
         { label: 'world boundary d_w', color: 'var(--text-muted)', kind: 'dashed' },
       ],
       caption:
-        'Figures 19–23: ground coverage of the field of view. A flat world runs out of ground at the horizon ' +
+        'ground coverage of the field of view. A flat world runs out of ground at the horizon ' +
         '(α = 90°); every uplifted profile continues past it.',
       table: (context) => {
         const table = model(context.state.profile).lut(context.state.alphaW);
@@ -772,12 +768,11 @@
   }
 
   /* ================================================================ *
-   * Figures 24–31 — change in distance to the observer
+   * change in distance to the observer
    * ================================================================ */
 
   figures['distance-change'] = (slot) =>
     createFigure(slot, {
-      number: 'Figures 24–31',
       title: 'How the distance from the observer changes',
       note:
         'Uplifting the ground moves every point closer to the observer, because the arc length to it is preserved ' +
@@ -813,7 +808,7 @@
         { label: 'lower levels, in each panel’s own hue', color: 'var(--text-muted)' },
       ],
       caption:
-        'Figures 24–31: distance from the observer to a surface point, after uplift minus before, as a function ' +
+        'distance from the observer to a surface point, after uplift minus before, as a function ' +
         'of the original ground distance s.',
     });
 
@@ -898,7 +893,7 @@
   }
 
   /* ================================================================ *
-   * Figures 32–39 — evolution of the visible strip
+   * evolution of the visible strip
    * ================================================================ */
 
   const evolutionCache = new Map();
@@ -949,7 +944,6 @@
 
   figures.evolution = (slot) =>
     createFigure(slot, {
-      number: 'Figures 32–39',
       title: 'Evolution of the visible strip',
       note:
         'Every row is one uplift level and every column one viewing angle; the colour is the ground tile seen in ' +
@@ -972,7 +966,7 @@
         { label: 'current level', color: 'var(--status-critical)' },
       ],
       caption:
-        'Figures 32–39: the colour-strip evolution over the uplift levels, produced from the two-dimensional ' +
+        'the colour-strip evolution over the uplift levels, produced from the two-dimensional ' +
         'lookup table s(α; p) described in the computational remarks.',
     });
 

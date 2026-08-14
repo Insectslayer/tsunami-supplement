@@ -37,12 +37,11 @@
   })();
 
   /* ================================================================ *
-   * Figures 61–66 — the reference zero plane
+   * the reference zero plane
    * ================================================================ */
 
   figures['zero-plane'] = (slot) =>
     createFigure(slot, {
-      number: 'Figures 61–66',
       title: 'The reference zero plane and normal coordinates',
       note:
         'A vertical cross-section through the world. Every point keeps its signed height q above the zero plane ' +
@@ -91,7 +90,7 @@
         },
       ],
       caption:
-        'Figures 61–66: the normal-coordinate construction with the zero plane at h₀. Placing it near the ' +
+        'the normal-coordinate construction with the zero plane at h₀. Placing it near the ' +
         'vertical centre of the world splits the required normal range between the two sides of the curved ' +
         'surface, instead of assigning the whole object height to one side.',
     });
@@ -246,12 +245,11 @@
   }
 
   /* ================================================================ *
-   * Figures 67–70 — the curvature band
+   * the curvature band
    * ================================================================ */
 
   figures['curvature-band'] = (slot) =>
     createFigure(slot, {
-      number: 'Figures 67–70',
       title: 'Where tall objects still fit',
       note:
         'At each point of the uplifted profile a band of width min(h_w, η·R) is drawn along the normal, where R ' +
@@ -314,7 +312,7 @@
         { label: 'world height h_w', color: 'var(--text-muted)', kind: 'dashed' },
       ],
       caption:
-        'Figures 67–70: as the uplift grows the curvature radius falls, particularly in the strongly bent parts ' +
+        'as the uplift grows the curvature radius falls, particularly in the strongly bent parts ' +
         'of the profile, and the admissible band narrows. Where the band is red, the rigid-height model would ' +
         'push points onto the local focal surface and additional height compression is required.',
       table: (context) => {

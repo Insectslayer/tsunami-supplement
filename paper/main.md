@@ -36,9 +36,7 @@ We assume the observer views a flat disc world of radius
 $\ensuremath{d_{w}}$, covered by a chessboard pattern with tiles of size
 $\ensuremath{d_T}$. This choice allows us to present the effects of the
 transformations visually. The geometric configuration and the notation
-used throughout the paper are summarized in
-Figure [1](#fig:notation){reference-type="ref"
-reference="fig:notation"} and
+used throughout the paper are summarized in Figure @@ref:notation@@ and
 Table [1](#tab:parameters){reference-type="ref"
 reference="tab:parameters"}. The chosen parameters yield a vertical
 field of view of $130^\circ$ and a horizontal field of view of
@@ -133,11 +131,9 @@ angular interval and increases its angular resolution from the
 observer's perspective.
 
 We use the desired value of $\alpha'_w$ as a natural parameter
-controlling the degree of uplift.
-Figure [16](#fig:lifting_transformations){reference-type="ref"
-reference="fig:lifting_transformations"} shows animations of a world of
-radius $500$ being uplifted using the different transformation methods
-for increasing $\alpha'_w$ parameter.
+controlling the degree of uplift. Figure @@ref:profiles@@ shows
+animations of a world of radius $500$ being uplifted using the different
+transformation methods for increasing $\alpha'_w$ parameter.
 
 @@figure:angular-construction@@
 
@@ -261,8 +257,7 @@ $[0^\circ,90^\circ)$. If each viewing angle is doubled while preserving
 the distance from the observer to the corresponding point, the resulting
 profile spans the full interval $[0^\circ,180^\circ)$. This
 construction, where $d'=d$ and $\alpha'=2\alpha$ is illustrated in
-Figure [18](#fig:angular_tsunami){reference-type="ref"
-reference="fig:angular_tsunami"}.
+Figure @@ref:angular-construction@@.
 
 Let $h'>0$ denote an effective observer height that controls the degree
 of uplift. A point $(s,0)$ on the original ground is seen from the
@@ -693,8 +688,7 @@ two-dimensional table can then represent $$s_{ij}
 s(\alpha_j;p_i),$$ where rows correspond to uplift levels and columns
 correspond to viewing angles. Such a table supports efficient generation
 of animations, coverage plots, and the colour-strip evolution shown in
-Figure [39](#fig:evolution){reference-type="ref"
-reference="fig:evolution"}.
+Figure @@ref:evolution@@.
 
 ### Numerical robustness
 
@@ -749,23 +743,13 @@ directional, and mixed.
 
 @@figure:extensions-2d@@
 
-Figure [48](#fig:lifting_in_space){reference-type="ref"
-reference="fig:lifting_in_space"} compares the resulting images and
-visible regions for the same one-dimensional parabolic profile.
-Figure [40](#fig:camera_original){reference-type="ref"
-reference="fig:camera_original"} shows the original flat plane, while
-Figures [41](#fig:parabolic_radial){reference-type="ref"
-reference="fig:parabolic_radial"}--[43](#fig:parabolic_mixed){reference-type="ref"
-reference="fig:parabolic_mixed"} show the camera views produced by the
-three extensions. Their corresponding visible regions in the ground
-plane are shown in
-Figures [45](#fig:parabolic_radial_topview){reference-type="ref"
-reference="fig:parabolic_radial_topview"}--[47](#fig:parabolic_mixed_topview){reference-type="ref"
-reference="fig:parabolic_mixed_topview"}. The side view in
-Figure [44](#fig:parabolic_sideview){reference-type="ref"
-reference="fig:parabolic_sideview"} is common to all three methods along
-the central viewing direction; the methods differ in how this profile is
-propagated laterally.
+Figure @@ref:extensions-2d@@ compares the resulting images and visible
+regions for the same one-dimensional parabolic profile. Its top row
+shows the original flat plane and the camera views produced by the three
+extensions. Their corresponding visible regions in the ground plane are
+shown in the middle row. The side view in the bottom row is common to
+all three methods along the central viewing direction; the methods
+differ in how this profile is propagated laterally.
 
 ### Radial tsunami {#sec:radial_tsunami}
 
@@ -800,12 +784,9 @@ transformation is applied equally strongly across the entire field of
 view. Consequently, the apparent deformation depends on both the
 vertical and horizontal viewing angles. Straight ground structures that
 are perpendicular to the viewing direction may therefore become
-noticeably curved in the image. This effect can be seen in
-Figure [41](#fig:parabolic_radial){reference-type="ref"
-reference="fig:parabolic_radial"}, while the corresponding transformed
-field of view is shown in
-Figure [45](#fig:parabolic_radial_topview){reference-type="ref"
-reference="fig:parabolic_radial_topview"}.
+noticeably curved in the image. This effect can be seen in the radial
+camera view of Figure @@ref:extensions-2d@@, while the corresponding
+transformed field of view is shown in the ground panel below it.
 
 For rendering, the radial method can be evaluated efficiently using the
 angle-to-distance lookup table described in
@@ -862,9 +843,8 @@ viewing angle and therefore receive the same forward distance. The
 transformation consequently preserves lateral relationships more
 faithfully than the radial method. In particular, structures
 perpendicular to the viewing direction are less affected by lateral
-bending, as illustrated in
-Figure [42](#fig:parabolic_directional){reference-type="ref"
-reference="fig:parabolic_directional"}.
+bending, as illustrated in the directional camera view of
+Figure @@ref:extensions-2d@@.
 
 The directional extension is also computationally efficient. Because the
 transformed distance depends only on the vertical image coordinate, the
@@ -880,8 +860,7 @@ one-dimensional profile is propagated must change as well. Moreover, the
 cylindrical surface does not treat all directions around the observer
 equally. The visible region therefore differs substantially from the
 rotationally symmetric region produced by radial uplifting, as shown in
-Figure [46](#fig:parabolic_directional_topview){reference-type="ref"
-reference="fig:parabolic_directional_topview"}.
+the directional ground panel of Figure @@ref:extensions-2d@@.
 
 ### Mixed tsunami {#sec:mixed_tsunami}
 
@@ -937,15 +916,12 @@ directional method.
 
 The choice of $\mu$ may be fixed globally or selected according to an
 image-space criterion. For example, it can be chosen to reduce the
-curvature or irregularity of the projected world boundary.
-Figure [43](#fig:parabolic_mixed){reference-type="ref"
-reference="fig:parabolic_mixed"} shows that an intermediate mixture can
-retain much of the natural depth redistribution of the radial method
-while reducing some of its lateral distortion. The corresponding field
-of view in
-Figure [47](#fig:parabolic_mixed_topview){reference-type="ref"
-reference="fig:parabolic_mixed_topview"} lies between those obtained by
-the radial and directional extensions.
+curvature or irregularity of the projected world boundary. The mixed
+camera view of Figure @@ref:extensions-2d@@ shows that an intermediate
+mixture can retain much of the natural depth redistribution of the
+radial method while reducing some of its lateral distortion. The
+corresponding field of view in the ground panel below it lies between
+those obtained by the radial and directional extensions.
 
 In all three methods, the underlying one-dimensional tsunami profile
 remains unchanged. The difference lies only in how the one-dimensional
@@ -1241,17 +1217,15 @@ important.
 
 @@figure:curvature-band@@
 
-Figure [66](#fig:zero_planes){reference-type="ref"
-reference="fig:zero_planes"} illustrates the normal-coordinate
-construction in a vertical cross-section. The original zero plane, its
-uplifted profile, and objects extending above and below the plane are
-shown before and after the transformation. The figure demonstrates that
-normal distances are preserved in the rigid-height model, while
-tangential distances are compressed on one side of the profile and
-expanded on the other.
+Figure @@ref:zero-plane@@ illustrates the normal-coordinate construction
+in a vertical cross-section. The original zero plane, its uplifted
+profile, and objects extending above and below the plane are shown
+before and after the transformation. The figure demonstrates that normal
+distances are preserved in the rigid-height model, while tangential
+distances are compressed on one side of the profile and expanded on the
+other.
 
-Figure [70](#fig:curvature_band){reference-type="ref"
-reference="fig:curvature_band"} visualises the local height constraint
+Figure @@ref:curvature-band@@ visualises the local height constraint
 along the uplifted profile. At each point, a band is drawn in the normal
 direction with width $$\min\left(
 h_w,,
