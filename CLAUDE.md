@@ -66,6 +66,14 @@ node build/verify.js     # JS profile maths vs build/reference.json
 node build/check.js      # headless Chrome: renders, console errors, layout, both themes
 ```
 
+Where a figure belongs is decided in the markdown: a line reading `@@figure:<name>@@` becomes the slot that
+`app.js` fills with the builder registered under `<name>` in `web/js/figures-*.js` (grep `figures.` there for
+the current list). Moving a figure means moving its anchor line; `convert.js` knows nothing about the figures
+beyond the anchor name, and refuses to build if `<figure>`/`<embed>`/`<img>` markup reappears in `main.md`.
+An anchor with no builder is not caught at build time — `check.js` reports it. Prose cross-references still
+use the paper's pandoc ids, resolved by `REFERENCE_TARGETS` (subfigure id → interactive figure) or by
+slugifying `:` to `-`.
+
 `web/appendix.html` is a single self-contained file (CSS, JS and KaTeX fonts inlined) for sharing; `index.html`
 links the same assets. `build/reference.py` regenerates `reference.json` and needs numpy/scipy/trimesh.
 

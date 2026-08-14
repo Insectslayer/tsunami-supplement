@@ -27,10 +27,8 @@ as a single self-contained file.
 Rebuild it after editing the paper or anything under `web/`:
 
 ```bash
-cd build && npm install       # first time: katex (build) and puppeteer (checks)
-node build/convert.js         # appendix text -> web/content.html
-node build/assemble.js        # -> web/index.html and web/appendix.html
-node build/check.js           # headless render check, both themes
+cd build
+source build.sh
 ```
 
 ## Installation

@@ -5,8 +5,8 @@
  *   - $...$ / $$...$$ are pre-rendered with KaTeX,
  *   - pandoc cross-reference links keep their printed number and point at the
  *     matching interactive figure,
- *   - every <figure> block is replaced by a slot that app.js fills with an
- *     interactive visualisation.
+ *   - an `@@figure:<name>@@` anchor line becomes a slot that app.js fills with
+ *     the interactive visualisation registered under that name in web/js.
  */
 'use strict';
 
@@ -18,46 +18,24 @@ const ROOT = path.resolve(__dirname, '..');
 const SOURCE = path.join(ROOT, 'paper', 'main.md');
 const OUTPUT = path.join(ROOT, 'web', 'content.html');
 
-/* ------------------------------------------------------------------ *
- * Figure slots
+/* Marks an anchor line reserving the place of an interactive figure. */
+const FIGURE_ANCHOR = /^@@figure:([a-z0-9-]+)@@$/;
+
+/* Raw markup the appendix should no longer contain — see FIGURE_ANCHOR. */
+const LEFTOVER_MARKUP = /^\s*<(figure|embed|img|figcaption)\b/;
+
+/*
+ * Anchor targets for pandoc's `Figure [n](#id)` references.
  *
- * Each original <figure id="..."> becomes a slot. `null` means the block is
- * dropped from its original position because the same content is shown by an
- * interactive figure placed elsewhere (LaTeX float placement had scattered
- * the comparison figures across the section).
- * ------------------------------------------------------------------ */
-const FIGURE_SLOTS = {
-  'fig:notation': 'notation',
-  'fig:lifting_transformations': 'profiles',
-  'fig:notation2': 'angular-construction',
-  'fig:lifting_coverage': null,
-  'fig:lifting_distance_change': null,
-  'fig:lifting_distance_change_relative': null,
-  'fig:evolution': null,
-  'fig:lifting_in_space': 'extensions-2d',
-  'fig:lifting_comparison': 'comparison',
-  'fig:zero_planes': 'zero-plane',
-  'fig:curvature_band': 'curvature-band',
-};
-
-/* Slots injected at a chosen place rather than where the float appeared. */
-const INSERT_AFTER_HEADING = {
-  // end of the four 1-D method subsections
-  'sec:computational_remarks': ['coverage', 'distance-change', 'evolution'],
-};
-
-/* Anchor targets for pandoc's `Figure [n](#id)` references. */
+ * Only ids that do not slugify to their own anchor are listed: a reference is
+ * resolved by replacing `:` with `-` (which is what section headings and the
+ * parameter table get), so `sec:1d_tsunami` finds `sec-1d_tsunami` by itself.
+ * The entries below are the figures the paper split into subfigures — each one
+ * points at the interactive figure that now shows the same thing.
+ */
 const REFERENCE_TARGETS = {
-  'fig:notation': 'fig-notation',
-  'fig:side_view_notation': 'fig-notation',
-  'fig:top_view_notation': 'fig-notation',
-  'fig:display_notation': 'fig-notation',
   'fig:lifting_transformations': 'fig-profiles',
-  'fig:notation2': 'fig-angular-construction',
   'fig:angular_tsunami': 'fig-angular-construction',
-  'fig:side_view_notation2': 'fig-angular-construction',
-  'fig:lifting_coverage': 'fig-coverage',
-  'fig:evolution': 'fig-evolution',
   'fig:lifting_in_space': 'fig-extensions-2d',
   'fig:camera_original': 'fig-extensions-2d',
   'fig:parabolic_radial': 'fig-extensions-2d',
@@ -67,20 +45,8 @@ const REFERENCE_TARGETS = {
   'fig:parabolic_radial_topview': 'fig-extensions-2d',
   'fig:parabolic_directional_topview': 'fig-extensions-2d',
   'fig:parabolic_mixed_topview': 'fig-extensions-2d',
-  'fig:lifting_comparison': 'fig-comparison',
   'fig:zero_planes': 'fig-zero-plane',
   'fig:curvature_band': 'fig-curvature-band',
-  'tab:parameters': 'tab-parameters',
-  'sec:1d_tsunami': 'sec-1d_tsunami',
-  'sec:computational_remarks': 'sec-computational_remarks',
-  'sec:2d_tsunami': 'sec-2d_tsunami',
-  'sec:3d_extension': 'sec-3d_extension',
-  'sec:radial_tsunami': 'sec-radial_tsunami',
-  'sec:directional_tsunami': 'sec-directional_tsunami',
-  'sec:mixed_tsunami': 'sec-mixed_tsunami',
-  'sec:directional_extension': 'sec-directional_extension',
-  'sec:radial_extension': 'sec-radial_extension',
-  'sec:implementation': 'sec-computational_remarks',
 };
 
 const MATH_MACROS = {
@@ -117,7 +83,7 @@ function escapeHtml(text) {
  * ------------------------------------------------------------------ */
 
 function convertReferences(text) {
-  // [11](#fig:notation){reference-type="ref" reference="fig:notation"}
+  // [1](#fig:notation){reference-type="ref" reference="fig:notation"}
   return text.replace(
     /\[([^\]]*)\]\(#([^)]+)\)(?:\{[^}]*\})?/g,
     (match, label, target) => {
@@ -214,41 +180,17 @@ function findInlineMathEnd(text, from) {
  * Block structure
  * ------------------------------------------------------------------ */
 
-function extractAppendix(markdown) {
-  const lines = markdown.split(/\r?\n/);
-  const start = lines.findIndex((line) => line.startsWith('# Appendices'));
-  if (start === -1) throw new Error('Could not locate "# Appendices" in the source.');
-  return lines.slice(start);
-}
-
-/** Drops the pandoc <figure> HTML blocks, leaving a slot marker instead. */
-function stripFigures(lines) {
-  const output = [];
-  let depth = 0;
-  let currentId = null;
-
-  for (const line of lines) {
-    const opening = line.match(/^<figure id="([^"]+)"/);
-    if (opening && depth === 0) {
-      currentId = opening[1];
-      depth = 1;
-      continue;
-    }
-    if (depth > 0) {
-      if (/^<figure/.test(line)) depth += 1;
-      if (/^<\/figure>/.test(line)) {
-        depth -= 1;
-        if (depth === 0) {
-          const slot = FIGURE_SLOTS[currentId];
-          if (slot) output.push(`@@SLOT:${slot}@@`);
-          currentId = null;
-        }
-      }
-      continue;
-    }
-    output.push(line);
-  }
-  return output;
+/** Fails the build if pandoc's figure markup was pasted back into the source. */
+function checkNoRawMarkup(lines) {
+  const offenders = lines
+    .map((line, index) => ({ line, index }))
+    .filter(({ line }) => LEFTOVER_MARKUP.test(line));
+  if (offenders.length === 0) return;
+  const { line, index } = offenders[0];
+  throw new Error(
+    `${SOURCE}:${index + 1}: raw figure markup in the source — replace the ` +
+      `block with an @@figure:<name>@@ anchor.\n  ${line.trim()}`
+  );
 }
 
 /** The single pandoc table in the appendix is converted by hand. */
@@ -373,7 +315,6 @@ function render(blocks) {
         sectionOpen = false;
       }
       const id = slugForHeading(block, index);
-      const rawId = block.id;
       if (block.level <= 2) {
         html.push(`<section id="${id}" class="paper-section">`);
         sectionOpen = true;
@@ -383,10 +324,6 @@ function render(blocks) {
       html.push(
         `<h${level} id="${anchorId}" class="heading-l${block.level}">${convertInlineText(block.text)}</h${level}>`
       );
-      const injected = rawId ? INSERT_AFTER_HEADING[rawId] : null;
-      if (injected) {
-        // slots that belong to the previous section are emitted before this heading
-      }
       return;
     }
 
@@ -406,10 +343,9 @@ function render(blocks) {
         html.push(renderParameterTable());
         return;
       }
-      const slot = block.value.match(/^@@SLOT:(.+)@@$/);
-      if (slot) {
-        html.push(figureSlot(slot[1]));
-      }
+      const anchor = block.value.match(FIGURE_ANCHOR);
+      if (!anchor) throw new Error(`Unrecognised anchor in the source: ${block.value}`);
+      html.push(figureSlot(anchor[1]));
       return;
     }
 
@@ -425,29 +361,13 @@ function figureSlot(name) {
   return `<figure class="fig-slot" id="fig-${name}" data-figure="${name}"></figure>`;
 }
 
-/** Injects the relocated comparison figures before the given heading id. */
-function injectRelocatedSlots(blocks) {
-  const output = [];
-  for (const block of blocks) {
-    if (block.type === 'heading' && block.id && INSERT_AFTER_HEADING[block.id]) {
-      for (const slot of INSERT_AFTER_HEADING[block.id]) {
-        output.push({ type: 'marker', value: `@@SLOT:${slot}@@` });
-      }
-    }
-    output.push(block);
-  }
-  return output;
-}
-
 function main() {
   const markdown = fs.readFileSync(SOURCE, 'utf8');
-  let lines = extractAppendix(markdown);
-  lines = stripFigures(lines);
+  let lines = markdown.split(/\r?\n/);
+  checkNoRawMarkup(lines);
   lines = stripDivBlock(lines);
 
-  let blocks = blockify(lines);
-  blocks = injectRelocatedSlots(blocks);
-
+  const blocks = blockify(lines);
   const html = render(blocks);
   fs.writeFileSync(OUTPUT, `${html}\n`, 'utf8');
 

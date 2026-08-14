@@ -60,12 +60,12 @@
   }
 
   /* ================================================================ *
-   * Figure 11 — notation
+   * Figure 1 — notation
    * ================================================================ */
 
   figures.notation = (slot) =>
     createFigure(slot, {
-      number: 'Figure 11',
+      number: 'Figure 1',
       title: 'The observer, the world and the camera',
       note:
         'The geometry of Table 1. Drag the viewing direction α to sweep the camera through the vertical plane; ' +
@@ -148,7 +148,7 @@
         { label: 'field of view', color: 'var(--text-muted)', kind: 'dashed' },
       ],
       caption:
-        'Figure 11: a side view of the world, a top-down view of the plane with a square grid, and the camera view. ' +
+        'Figure 1: a side view of the world, a top-down view of the plane with a square grid, and the camera view. ' +
         'The observer sits at Q = (0, 0, h); α is measured from the downward vertical, so α = 90° looks at the horizon.',
     });
 
