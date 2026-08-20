@@ -99,6 +99,22 @@ const only = process.argv[2];
     );
   }
 
+  // Cross-references: every @@ref@@ link must land on something in the page.
+  const refs = await page.evaluate(() => {
+    const links = [...document.querySelectorAll('a.xref')];
+    const dangling = links
+      .filter((link) => !document.getElementById(link.getAttribute('href').slice(1)))
+      .map((link) => `${link.textContent} -> ${link.getAttribute('href')}`);
+    return { total: links.length, dangling };
+  });
+  console.log(
+    `\ncross-references: ${refs.total} links, ` +
+      (refs.dangling.length ? `dangling: ${refs.dangling.join(', ')}` : 'all resolve')
+  );
+  if (refs.dangling.length) {
+    problems.push(`[xref] dangling: ${refs.dangling.join(', ')}`);
+  }
+
   // Exercise the global controls.
   const timings = await page.evaluate(async () => {
     const results = {};

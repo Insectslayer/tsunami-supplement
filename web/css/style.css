@@ -468,6 +468,20 @@ input[type="range"]:focus-visible {
   opacity: 0.75;
 }
 
+/* Section numbers are derived at build time from the order of the headings in
+   paper/main.md, exactly like the figure numbers, and are what @@ref@@ prints. */
+
+.heading-number {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  margin-right: 0.55em;
+}
+
+.paper h4 .heading-number {
+  font-size: 0.95em;
+}
+
 a.xref {
   color: var(--accent);
   text-decoration: none;
@@ -924,9 +938,28 @@ td > .katex {
     border-color 0.15s;
 }
 
+/* One tier per heading depth, indented by the depth app.js reads off the
+   heading class. */
+.toc a.level-1 {
+  font-weight: 580;
+  color: var(--text-secondary);
+}
+
 .toc a.level-2 {
   padding-left: 1.2rem;
   font-size: 0.72rem;
+}
+
+.toc a.level-3 {
+  padding-left: 2rem;
+  font-size: 0.71rem;
+}
+
+.toc-number {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.45em;
+  opacity: 0.8;
 }
 
 .toc a:hover {
@@ -937,6 +970,11 @@ td > .katex {
   color: var(--text-primary);
   border-left-color: var(--accent);
   font-weight: 560;
+}
+
+.toc a[aria-current="true"] .toc-number {
+  color: var(--accent);
+  opacity: 1;
 }
 
 /* ------------------------------------------------------------------ *

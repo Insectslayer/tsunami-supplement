@@ -72,12 +72,13 @@ the current list). Moving a figure means moving its anchor line; `convert.js` kn
 beyond the anchor name, and refuses to build if `<figure>`/`<embed>`/`<img>` markup reappears in `main.md`.
 An anchor with no builder is not caught at build time — `check.js` reports it.
 
-Figure numbers are derived, never written down: `convert.js` numbers the anchors 1..n in source order, puts
-the number on the slot as `data-number`, and `figure-kit.js` reads it for both the figure heading and the
-caption prefix. In the prose, an inline `@@ref:<name>@@` prints that number as a link — so reordering the
-anchors renumbers the figures and every citation at once, and a `@@ref:@@` to a figure that is not anchored
-fails the build. Section and table cross-references are still pandoc links carrying a hardcoded number
-(`Section [10.2](#sec:computational_remarks){…}`), resolved by slugifying `:` to `-`.
+Figures and sections are referenced in the following way:
+- figures: labelled by their `@@figure:<name>@@` anchor, numbered 1..n; the number goes on the slot as
+  `data-number`, and `figure-kit.js` reads it for the figure heading and the caption prefix;
+- sections: labelled by the pandoc id on the heading (`## … {#sec:1d_tsunami}`, cited as
+  `@@ref:sec:1d_tsunami@@`), numbered hierarchically under `FIRST_SECTION_NUMBER`; the number goes on the heading as `data-number` and into a
+  `.heading-number` span, which `app.js` reuses for the contents rail;
+- tables: labelled by the id on the pandoc div (`::: {#tab:parameters}`), numbered 1..n; the div must carry an id or the build fails.
 
 `web/appendix.html` is a single self-contained file (CSS, JS and KaTeX fonts inlined) for sharing; `index.html`
 links the same assets. `build/reference.py` regenerates `reference.json` and needs numpy/scipy/trimesh.

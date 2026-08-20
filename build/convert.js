@@ -5,9 +5,11 @@
  *   - $...$ / $$...$$ are pre-rendered with KaTeX,
  *   - an `@@figure:<name>@@` anchor line becomes a slot that app.js fills with
  *     the interactive visualisation registered under that name in web/js,
- *   - figures are numbered by the order of those anchors, and an inline
- *     `@@ref:<name>@@` prints the number the figure was given,
- *   - pandoc's remaining section links keep their printed number.
+ *   - figures, sections and tables are numbered by their order in the source,
+ *     and an inline `@@ref:<label>@@` prints the number the target was given:
+ *     `@@ref:notation@@` for a figure anchor, `@@ref:sec:1d_tsunami@@` for a
+ *     heading carrying `{#sec:1d_tsunami}`, `@@ref:tab:parameters@@` for a
+ *     table. No number is ever written down in the source.
  */
 'use strict';
 
@@ -22,17 +24,31 @@ const OUTPUT = path.join(ROOT, 'web', 'content.html');
 /* Marks an anchor line reserving the place of an interactive figure. */
 const FIGURE_ANCHOR = /^@@figure:([a-z0-9-]+)@@$/;
 
+/* The pandoc div holding a table, rewritten to a marker by stripDivBlock. */
+const TABLE_MARKER = /^@@table:([a-z0-9:_-]+)@@$/;
+
 /* Raw markup the appendix should no longer contain — see FIGURE_ANCHOR. */
 const LEFTOVER_MARKUP = /^\s*<(figure|embed|img|figcaption)\b/;
 
-/*
- * Inline `@@ref:<name>@@` reference to the figure anchored under that name.
- * It prints the figure's number, so the prose never spells one out.
- */
-const FIGURE_REFERENCE = /@@ref:([a-z0-9-]+)@@/g;
+/* A pandoc cross-reference link, which carries a number the source must not
+ * spell out — see REFERENCE. */
+const LEFTOVER_REFERENCE = /\[[^\]]*\]\(#[^)]+\)/;
 
-/* name -> printed number, in the order the anchors appear in the source. */
-const figureNumbers = new Map();
+/*
+ * Inline `@@ref:<label>@@` reference to a numbered thing: a figure anchor
+ * (`notation`), a heading label (`sec:1d_tsunami`) or a table (`tab:foo`).
+ * It prints the number that thing was given, so the prose never spells one out.
+ */
+const REFERENCE = /@@ref:([a-z0-9:_-]+)@@/g;
+
+const FIRST_SECTION_NUMBER = 1;
+
+/*
+ * label -> { number, href, kind }, in the order the labelled things appear in
+ * the source. Figures are keyed by their anchor name, sections and tables by
+ * the id written in the source (`sec:…`, `tab:…`).
+ */
+const labels = new Map();
 
 const MATH_MACROS = {
   '\\ensuremath': '#1',
@@ -67,36 +83,68 @@ function escapeHtml(text) {
  * Inline markup
  * ------------------------------------------------------------------ */
 
+/** `@@ref:profiles@@` -> a link printing the number that target was given. */
 function convertReferences(text) {
-  // Section [10.2](#sec:computational_remarks){reference-type="ref" ...}
-  return text.replace(
-    /\[([^\]]*)\]\(#([^)]+)\)(?:\{[^}]*\})?/g,
-    (match, label, target) =>
-      `<a class="xref" href="#${target.replace(/:/g, '-')}">${label}</a>`
-  );
-}
-
-/** `@@ref:profiles@@` -> a link printing the number that figure was given. */
-function convertFigureReferences(text) {
-  return text.replace(FIGURE_REFERENCE, (match, name) => {
-    const number = figureNumbers.get(name);
-    if (!number) {
+  return text.replace(REFERENCE, (match, label) => {
+    const target = labels.get(label);
+    if (!target) {
       throw new Error(
-        `${match} refers to a figure that is not anchored in the source. ` +
-          `Known figures: ${[...figureNumbers.keys()].join(', ')}`
+        `${match} refers to something that is not numbered in the source. ` +
+          `Known labels: ${[...labels.keys()].join(', ')}`
       );
     }
-    return `<a class="xref" href="#fig-${name}">${number}</a>`;
+    return `<a class="xref" href="${target.href}">${target.number}</a>`;
   });
 }
 
-/** Numbers the figures by the order their anchors appear in the source. */
-function numberFigures(blocks) {
-  figureNumbers.clear();
-  blocks.forEach((block) => {
+/**
+ * Numbers everything the prose can cite, in source order: figures 1..n by their
+ * anchors, tables 1..n by theirs, and headings hierarchically under
+ * FIRST_SECTION_NUMBER. The numbers are stored on the blocks as well, so the
+ * renderer prints the same one it hands out to the references.
+ */
+function collectLabels(blocks) {
+  labels.clear();
+  const counters = [];
+  let figures = 0;
+  let tables = 0;
+
+  blocks.forEach((block, index) => {
+    if (block.type === 'heading') {
+      counters.length = block.level;
+      for (let depth = 0; depth < block.level; depth += 1) {
+        if (counters[depth] == null) counters[depth] = 0;
+      }
+      counters[block.level - 1] += 1;
+      block.number = counters
+        .map((count, depth) => (depth === 0 ? count + FIRST_SECTION_NUMBER - 1 : count))
+        .join('.');
+      block.slug = slugForHeading(block, index);
+      if (block.id) {
+        labels.set(block.id, { number: block.number, href: `#${block.slug}`, kind: 'section' });
+      }
+      return;
+    }
+
     if (block.type !== 'marker') return;
-    const anchor = block.value.match(FIGURE_ANCHOR);
-    if (anchor) figureNumbers.set(anchor[1], figureNumbers.size + 1);
+
+    const figure = block.value.match(FIGURE_ANCHOR);
+    if (figure) {
+      figures += 1;
+      block.name = figure[1];
+      block.number = figures;
+      labels.set(figure[1], { number: figures, href: `#fig-${figure[1]}`, kind: 'figure' });
+      return;
+    }
+
+    const table = block.value.match(TABLE_MARKER);
+    if (table) {
+      tables += 1;
+      block.name = table[1];
+      block.number = tables;
+      block.slug = table[1].replace(/:/g, '-');
+      labels.set(table[1], { number: tables, href: `#${block.slug}`, kind: 'table' });
+    }
   });
 }
 
@@ -169,7 +217,6 @@ function convertInlineText(text) {
     .map((chunk) => {
       if (chunk.type === 'math') return renderMath(chunk.value, false);
       let value = escapeHtml(chunk.value);
-      value = convertFigureReferences(value);
       value = convertReferences(value);
       value = convertEmphasis(value);
       return value;
@@ -201,10 +248,27 @@ function checkNoRawMarkup(lines) {
   );
 }
 
+/**
+ * Fails the build if a pandoc cross-reference link was pasted back into the
+ * source. Such a link spells out a number that then goes stale as soon as
+ * anything is reordered.
+ */
+function checkNoStaticReferences(lines) {
+  const offenders = lines
+    .map((line, index) => ({ line, index }))
+    .filter(({ line }) => LEFTOVER_REFERENCE.test(line));
+  if (offenders.length === 0) return;
+  const { line, index } = offenders[0];
+  throw new Error(
+    `${SOURCE}:${index + 1}: cross-reference with a written-out number — ` +
+      `replace the link with an @@ref:<label>@@ reference.\n  ${line.trim()}`
+  );
+}
+
 /** The single pandoc table in the appendix is converted by hand. */
-const PARAMETER_TABLE = `<figure class="table-figure" id="tab-parameters">
+const PARAMETER_TABLE = `<figure class="table-figure" id="@ANCHOR@">
 <table class="parameter-table">
-<caption>Table 1: Basic parameters used in the figures.</caption>
+<caption>Table @NUMBER@: Basic parameters used in the figures.</caption>
 <thead>
 <tr><th>Parameter</th><th>Description</th><th>Default value</th></tr>
 </thead>
@@ -222,24 +286,41 @@ const PARAMETER_TABLE = `<figure class="table-figure" id="tab-parameters">
 </table>
 </figure>`;
 
-function renderParameterTable() {
-  return PARAMETER_TABLE.replace(/@MATH:([^@]+)@/g, (match, tex) =>
-    renderMath(tex.replace(/\\\\/g, '\\'), false)
-  );
+function renderParameterTable(block) {
+  if (block.name !== 'tab:parameters') {
+    throw new Error(
+      `Only the parameter table is converted by hand; add markup for ${block.name}.`
+    );
+  }
+  return PARAMETER_TABLE.replace(/@ANCHOR@/, block.slug)
+    .replace(/@NUMBER@/, String(block.number))
+    .replace(/@MATH:([^@]+)@/g, (match, tex) =>
+      renderMath(tex.replace(/\\\\/g, '\\'), false)
+    );
 }
 
+/**
+ * Replaces the pandoc div wrapping a table with a marker carrying the div's
+ * id, which is the label the prose cites the table by.
+ */
 function stripDivBlock(lines) {
   const output = [];
   let inside = false;
   for (const line of lines) {
-    if (/^::: /.test(line)) {
+    const opening = line.match(/^:::\s*\{#([a-z0-9:_-]+)\}\s*$/);
+    if (opening) {
       inside = true;
-      output.push('@@TABLE@@');
+      output.push(`@@table:${opening[1]}@@`);
       continue;
     }
     if (/^:::\s*$/.test(line)) {
       inside = false;
       continue;
+    }
+    if (/^:::/.test(line)) {
+      throw new Error(
+        `${SOURCE}: a pandoc div must carry the id the prose cites it by.\n  ${line.trim()}`
+      );
     }
     if (inside) continue;
     output.push(line);
@@ -266,7 +347,7 @@ function blockify(lines) {
     }
     // Only a whole line is a marker; an @@ref:...@@ that happens to start a
     // line is prose and is converted inline.
-    if (trimmed === '@@TABLE@@' || FIGURE_ANCHOR.test(trimmed)) {
+    if (TABLE_MARKER.test(trimmed) || FIGURE_ANCHOR.test(trimmed)) {
       flush();
       blocks.push({ type: 'marker', value: trimmed });
       continue;
@@ -317,22 +398,28 @@ function render(blocks) {
     }
   };
 
-  blocks.forEach((block, index) => {
+  blocks.forEach((block) => {
     if (block.type === 'heading') {
       closeList();
       if (sectionOpen && block.level <= 2) {
         html.push('</section>');
         sectionOpen = false;
       }
-      const id = slugForHeading(block, index);
+      const id = block.slug;
       if (block.level <= 2) {
         html.push(`<section id="${id}" class="paper-section">`);
         sectionOpen = true;
       }
       const level = Math.min(block.level + 1, 6);
       const anchorId = block.level <= 2 ? `${id}-title` : id;
+      // The number is the one the references print, and app.js reads it back
+      // for the contents rail.
       html.push(
-        `<h${level} id="${anchorId}" class="heading-l${block.level}">${convertInlineText(block.text)}</h${level}>`
+        `<h${level} id="${anchorId}" class="heading-l${block.level}" ` +
+          `data-number="${block.number}">` +
+          `<span class="heading-number">${block.number}</span>` +
+          `<span class="heading-text">${convertInlineText(block.text)}</span>` +
+          `</h${level}>`
       );
       return;
     }
@@ -349,13 +436,14 @@ function render(blocks) {
     closeList();
 
     if (block.type === 'marker') {
-      if (block.value === '@@TABLE@@') {
-        html.push(renderParameterTable());
+      if (TABLE_MARKER.test(block.value)) {
+        html.push(renderParameterTable(block));
         return;
       }
-      const anchor = block.value.match(FIGURE_ANCHOR);
-      if (!anchor) throw new Error(`Unrecognised anchor in the source: ${block.value}`);
-      html.push(figureSlot(anchor[1]));
+      if (!FIGURE_ANCHOR.test(block.value)) {
+        throw new Error(`Unrecognised anchor in the source: ${block.value}`);
+      }
+      html.push(figureSlot(block));
       return;
     }
 
@@ -367,11 +455,10 @@ function render(blocks) {
   return html.join('\n');
 }
 
-function figureSlot(name) {
-  const number = figureNumbers.get(name);
+function figureSlot(block) {
   return (
-    `<figure class="fig-slot" id="fig-${name}" data-figure="${name}" ` +
-    `data-number="${number}"></figure>`
+    `<figure class="fig-slot" id="fig-${block.name}" data-figure="${block.name}" ` +
+    `data-number="${block.number}"></figure>`
   );
 }
 
@@ -379,16 +466,24 @@ function main() {
   const markdown = fs.readFileSync(SOURCE, 'utf8');
   let lines = markdown.split(/\r?\n/);
   checkNoRawMarkup(lines);
+  checkNoStaticReferences(lines);
   lines = stripDivBlock(lines);
 
   const blocks = blockify(lines);
-  numberFigures(blocks);
+  collectLabels(blocks);
   const html = render(blocks);
   fs.writeFileSync(OUTPUT, `${html}\n`, 'utf8');
 
-  const numbered = [...figureNumbers].map(([name, number]) => `${number} ${name}`);
+  const summary = (kind) =>
+    [...labels]
+      .filter(([, target]) => target.kind === kind)
+      .map(([label, target]) => `${target.number} ${label}`)
+      .join(', ');
   console.log(`Wrote ${OUTPUT}`);
-  console.log(`  ${blocks.length} blocks, ${figureNumbers.size} figures: ${numbered.join(', ')}`);
+  console.log(`  ${blocks.length} blocks`);
+  console.log(`  figures:  ${summary('figure')}`);
+  console.log(`  sections: ${summary('section')}`);
+  console.log(`  tables:   ${summary('table')}`);
 }
 
 main();

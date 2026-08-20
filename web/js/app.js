@@ -154,17 +154,25 @@
 
   function buildContents() {
     const rail = document.getElementById('toc');
-    const headings = document.querySelectorAll(
-      '.paper h3.heading-l2, .paper h4.heading-l3'
-    );
+    // Every heading convert.js emits, whatever depth the source gives it; the
+    // rail indents by that depth rather than by the HTML tag, so bumping the
+    // headings a level in paper/main.md does not drop a tier from the rail.
+    const headings = document.querySelectorAll('.paper [class*="heading-l"]');
     if (!headings.length) return;
 
     const links = [];
     headings.forEach((heading) => {
       if (!heading.id) return;
-      const link = element('a', heading.matches('.heading-l3') ? 'level-2' : 'level-1');
+      const depth = Number(heading.className.match(/heading-l(\d+)/)[1]);
+      const link = element('a', `level-${Math.min(depth, 3)}`);
       link.href = `#${heading.id}`;
-      link.textContent = heading.textContent;
+      // The number comes from the heading: convert.js numbers the sections by
+      // their order in paper/main.md, which is what the prose cites.
+      if (heading.dataset.number) {
+        link.appendChild(element('span', 'toc-number', heading.dataset.number));
+      }
+      const title = heading.querySelector('.heading-text');
+      link.appendChild(document.createTextNode(title ? title.textContent : heading.textContent));
       rail.appendChild(link);
       links.push({ link, heading });
     });

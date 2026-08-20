@@ -1,5 +1,3 @@
-# Tsunami Calculations
-
 This section presents the tsunami transformation methods in greater
 detail. It intentionally includes more material than may ultimately be
 needed; we can decide later which parts to retain.
@@ -37,8 +35,7 @@ $\ensuremath{d_{w}}$, covered by a chessboard pattern with tiles of size
 $\ensuremath{d_T}$. This choice allows us to present the effects of the
 transformations visually. The geometric configuration and the notation
 used throughout the paper are summarized in Figure @@ref:notation@@ and
-Table [1](#tab:parameters){reference-type="ref"
-reference="tab:parameters"}. The chosen parameters yield a vertical
+Table @@ref:tab:parameters@@. The chosen parameters yield a vertical
 field of view of $130^\circ$ and a horizontal field of view of
 approximately $141^\circ$.
 
@@ -96,7 +93,7 @@ the apparent ordering of points, as seen by the observer, is preserved
 
 @@figure:profiles@@
 
-## One-dimensional tsunami transformations {#sec:1d_tsunami}
+# One-dimensional tsunami transformations {#sec:1d_tsunami}
 
 We represent the original flat ground by the curve
 ${\mathbf{g}(s)} = \{(s, 0):s\in[0, \ensuremath{d_{w}}]\}$. Our goal is
@@ -137,7 +134,7 @@ transformation methods for increasing $\alpha'_w$ parameter.
 
 @@figure:angular-construction@@
 
-### Parabolic tsunami
+## Parabolic tsunami
 
 The parabolic tsunami transformation maps the flat ground onto a
 parabolic profile. In the vertical viewing plane, the profile is
@@ -156,8 +153,7 @@ to a point $P'$ on the parabola while preserving arc length, the
 corresponding parameter value $x$ must be found numerically.
 Consequently, the value of $p$ that produces a prescribed transformed
 boundary angle $\alpha'_w$ must also be determined numerically; see
-Section [10.2](#sec:computational_remarks){reference-type="ref"
-reference="sec:computational_remarks"}.
+Section @@ref:sec:computational_remarks@@.
 
 The intersection of the parabolic profile with a viewing ray originating
 at the observer and pointing in the direction $\mathbf{v}=(v_1,v_2)$ can
@@ -181,7 +177,7 @@ ray with $v_1>0$. Consequently, even an arbitrarily small positive
 uplift removes the horizon: every forward viewing direction intersects
 the uplifted ground eventually.
 
-### Hyperbolic tsunami
+## Hyperbolic tsunami
 
 The hyperbolic tsunami transformation is designed not only to raise the
 world boundary to the prescribed viewing angle $\alpha'_w$, but also to
@@ -246,10 +242,9 @@ Although the arc length of a hyperbola can be expressed analytically,
 its arc-length relation cannot, in general, be inverted in closed form.
 Consequently, the point $P'$ corresponding to an original ground
 distance $s$ must be determined numerically; see
-Section [10.2](#sec:computational_remarks){reference-type="ref"
-reference="sec:computational_remarks"}.
+Section @@ref:sec:computational_remarks@@.
 
-### Angular tsunami
+## Angular tsunami
 
 The angular tsunami transformation is motivated by the following
 observation. A flat ground plane is visible over the angular interval
@@ -302,9 +297,7 @@ respect to $s$: $$\left(
 Interestingly, the profile converges to the vertical line $x'=2h'$ as
 $s\to\infty$. Similarly to the previous two methods, the point $P'$
 corresponding to an original ground distance $s$ must be determined
-numerically; see
-Section [10.2](#sec:computational_remarks){reference-type="ref"
-reference="sec:computational_remarks"}.
+numerically; see Section @@ref:sec:computational_remarks@@.
 
 The intersection of the angular tsunami profile with a viewing ray can
 be found analytically up to the solution of a quartic polynomial. Let
@@ -357,7 +350,7 @@ downward-pointing ray intersects the profile at the origin, while an
 upward-pointing ray does not intersect the profile in front of the
 observer.
 
-### Spherical tsunami
+## Spherical tsunami
 
 The spherical tsunami transformation maps the flat ground onto a
 circular arc. Let $p\geq0$ denote the curvature of the profile and let
@@ -464,7 +457,7 @@ bisection.
 
 @@figure:evolution@@
 
-## Computational remarks {#sec:computational_remarks}
+# Computational remarks {#sec:computational_remarks}
 
 The four tsunami transformations differ in their analytic form, but they
 share several computational requirements. In particular, the
@@ -476,7 +469,7 @@ whereas others require numerical inversion. To avoid repeating expensive
 computations during rendering, we precompute the required mappings and
 store them in lookup tables.
 
-### Arc-length parametrization
+## Arc-length parametrization
 
 Let a tsunami profile be given by a parameterized curve
 $$\mathbf{g'}(t)=\bigl(x(t),z(t)\bigr).$$ Its arc length from the origin
@@ -531,7 +524,7 @@ when curvature changes rapidly. In practice, a dense one-dimensional
 table provides a good compromise between accuracy, memory consumption,
 and computational cost.
 
-### Determining the uplift parameter
+## Determining the uplift parameter
 
 For each transformation, the degree of uplift is controlled by a
 parameter $p$. Given the observer height $h$, the world radius
@@ -573,7 +566,7 @@ can be stored in a lookup table and reused by sliders, animations, and
 comparative experiments. This also ensures that all transformation
 methods are evaluated at corresponding uplift levels.
 
-### Intersection with viewing rays
+## Intersection with viewing rays
 
 To render the transformed world, it is often necessary to determine
 which ground point is visible in a given viewing direction. Let the
@@ -600,7 +593,7 @@ profile $p=0$, vertical rays with $v_1=0$, and rays pointing above the
 transformed horizon. Handling such cases separately improves both
 numerical stability and performance.
 
-### Angle-to-distance lookup tables
+## Angle-to-distance lookup tables
 
 Even when an analytic ray--profile intersection is available, evaluating
 it independently for every image pixel can be expensive. Moreover, the
@@ -640,15 +633,12 @@ by one-dimensional interpolation: $$d(\alpha)
 
 This approach is particularly effective because all pixels in a
 horizontal image row share the same vertical viewing angle in the
-directional
-formulation [10.3.2](#sec:directional_tsunami){reference-type="ref"
-reference="sec:directional_tsunami"}. Thus, only one distance value
-needs to be evaluated per row, after which it can be broadcast across
-the image width. In the radial
-formulation [10.3.1](#sec:radial_tsunami){reference-type="ref"
-reference="sec:radial_tsunami"}, the corresponding angle is computed for
-every pixel, but the expensive geometric inversion is still replaced by
-a fast table lookup.
+directional formulation @@ref:sec:directional_tsunami@@. Thus, only one
+distance value needs to be evaluated per row, after which it can be
+broadcast across the image width. In the radial
+formulation @@ref:sec:radial_tsunami@@, the corresponding angle is
+computed for every pixel, but the expensive geometric inversion is still
+replaced by a fast table lookup.
 
 The lookup table must remain monotonic in the region used for
 interpolation. Invalid intersections are represented by infinity or by a
@@ -657,7 +647,7 @@ interpolation. Before constructing the table, non-finite values should
 be removed or handled explicitly, and repeated angle values should be
 merged.
 
-### Precomputation and caching
+## Precomputation and caching
 
 The most expensive quantities depend only on a small number of global
 parameters, such as the observer height, the world radius, the
@@ -690,7 +680,7 @@ correspond to viewing angles. Such a table supports efficient generation
 of animations, coverage plots, and the colour-strip evolution shown in
 Figure @@ref:evolution@@.
 
-### Numerical robustness
+## Numerical robustness
 
 Several practical precautions improve numerical stability. Comparisons
 with zero should use a tolerance rather than exact equality, especially
@@ -715,13 +705,12 @@ computations are performed only when the global configuration changes,
 while the per-pixel evaluation is reduced primarily to interpolation and
 array operations.
 
-## Two-dimensional tsunami extension {#sec:2d_tsunami}
+# Two-dimensional tsunami extension {#sec:2d_tsunami}
 
-The transformations introduced in
-section [10.1](#sec:1d_tsunami){reference-type="ref"
-reference="sec:1d_tsunami"} act in a single vertical plane. To apply
-them to a two-dimensional ground surface, the one-dimensional profile
-must be extended over the horizontal plane.
+The transformations introduced in section @@ref:sec:1d_tsunami@@ act in
+a single vertical plane. To apply them to a two-dimensional ground
+surface, the one-dimensional profile must be extended over the
+horizontal plane.
 
 Let $$T_1(s)=\bigl(x'(s),z'(s)\bigr),
 \qquad s\geq0,$$ denote one of the one-dimensional tsunami
@@ -751,7 +740,7 @@ shown in the middle row. The side view in the bottom row is common to
 all three methods along the central viewing direction; the methods
 differ in how this profile is propagated laterally.
 
-### Radial tsunami {#sec:radial_tsunami}
+## Radial tsunami {#sec:radial_tsunami}
 
 The most direct two-dimensional extension is obtained by applying the
 one-dimensional transformation radially around the origin. For a ground
@@ -790,8 +779,7 @@ transformed field of view is shown in the ground panel below it.
 
 For rendering, the radial method can be evaluated efficiently using the
 angle-to-distance lookup table described in
-Section [10.2](#sec:computational_remarks){reference-type="ref"
-reference="sec:computational_remarks"}. For each camera ray, we compute
+Section @@ref:sec:computational_remarks@@. For each camera ray, we compute
 the angle $$\theta
 =
 \operatorname{atan2}
@@ -802,7 +790,7 @@ the angle $$\theta
 lookup table then provides the radial ground distance visible in this
 direction.
 
-### Directional tsunami {#sec:directional_tsunami}
+## Directional tsunami {#sec:directional_tsunami}
 
 The directional extension is motivated by the fact that the original
 one-dimensional profile is defined in the vertical plane containing the
@@ -862,7 +850,7 @@ equally. The visible region therefore differs substantially from the
 rotationally symmetric region produced by radial uplifting, as shown in
 the directional ground panel of Figure @@ref:extensions-2d@@.
 
-### Mixed tsunami {#sec:mixed_tsunami}
+## Mixed tsunami {#sec:mixed_tsunami}
 
 The radial and directional extensions have complementary advantages. The
 radial method is geometrically symmetric and naturally tied to the
@@ -932,19 +920,18 @@ ray-distance fields.
 
 @@figure:comparison@@
 
-## Three-dimensional tsunami extension {#sec:3d_extension}
+# Three-dimensional tsunami extension {#sec:3d_extension}
 
 The one-dimensional transformations introduced in
-Section [10.1](#sec:1d_tsunami){reference-type="ref"
-reference="sec:1d_tsunami"} describe the deformation of the ground in a
-vertical plane. To apply the tsunami transformation to a
+Section @@ref:sec:1d_tsunami@@ describe the deformation of the ground in
+a vertical plane. To apply the tsunami transformation to a
 three-dimensional scene, we first extend the transformed profile to a
 two-dimensional reference surface and then define the positions of
 points above and below this surface using normal coordinates.
 
 @@figure:zero-plane@@
 
-### Reference zero plane
+## Reference zero plane
 
 Let the original modelled world occupy the cylindrical domain
 $$\mathcal{W}=
@@ -970,7 +957,7 @@ above and below the reference plane. This choice becomes important
 because normal layers on one side of a curved surface are compressed,
 whereas layers on the opposite side are expanded.
 
-### Transformation of the zero plane
+## Transformation of the zero plane
 
 Let $$\mathbf{S}(x,y)=
 \bigl(
@@ -986,15 +973,12 @@ x^2+y^2\leq \ensuremath{d_{w}}^2
 \right\}.$$
 
 The surface $\mathcal{S}$ is constructed from one of the one-dimensional
-tsunami profiles described in
-Section [10.1](#sec:1d_tsunami){reference-type="ref"
-reference="sec:1d_tsunami"}. Different extensions of the same profile
-lead to different spatial transformations. In particular, we consider
-directional and radial extensions, which are described in
-Sections [10.4.4](#sec:directional_extension){reference-type="ref"
-reference="sec:directional_extension"}
-and [10.4.5](#sec:radial_extension){reference-type="ref"
-reference="sec:radial_extension"}, respectively.
+tsunami profiles described in Section @@ref:sec:1d_tsunami@@. Different
+extensions of the same profile lead to different spatial
+transformations. In particular, we consider directional and radial
+extensions, which are described in
+Sections @@ref:sec:directional_extension@@
+and @@ref:sec:radial_extension@@, respectively.
 
 Let $$\mathbf{n}(x,y)$$ be a consistently oriented unit normal to
 $\mathcal{S}$. The three-dimensional tsunami transformation of a point
@@ -1021,7 +1005,7 @@ directions tangent to the zero plane, while objects below it can be
 expanded, or vice versa, depending on the orientation and curvature of
 the surface.
 
-### Deformation of normal layers
+## Deformation of normal layers
 
 The local deformation of the world can be described using the principal
 curvatures of the transformed zero plane. Let $$\kappa_1(x,y),
@@ -1078,7 +1062,7 @@ required normal range between its two sides, whereas placing it at
 ground level assigns the entire object height to one side of the curved
 surface.
 
-### Directional extension {#sec:directional_extension}
+## Directional extension {#sec:directional_extension}
 
 In the directional extension, the one-dimensional tsunami profile is
 applied only in a selected horizontal direction. Let
@@ -1114,7 +1098,7 @@ remains unchanged: $$\sigma_1=1-q\kappa_{\mathrm{profile}},
 analyse and permits relatively tall objects whenever the profile
 curvature remains small.
 
-### Radial extension {#sec:radial_extension}
+## Radial extension {#sec:radial_extension}
 
 In the radial extension, the one-dimensional profile is rotated around
 the vertical axis through the observer. Let $$\rho=\sqrt{x^2+y^2},
@@ -1168,7 +1152,7 @@ must be evaluated by its limit. For a smooth surface meeting the axis
 regularly, the meridional and azimuthal curvatures coincide at the
 centre.
 
-### Height transformation models
+## Height transformation models
 
 The rigid-height model preserves normal distances:
 $$g_{\mathrm{rigid}}(x,y,q)=q.$$ Its main advantage is its clear
@@ -1213,7 +1197,7 @@ depends on whether preservation of object height or preservation of a
 globally valid non-intersecting transformation is considered more
 important.
 
-### Visualisation of height constraints
+## Visualisation of height constraints
 
 @@figure:curvature-band@@
 
