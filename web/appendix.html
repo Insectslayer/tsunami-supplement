@@ -2776,6 +2776,16 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
    * Plot
    * ---------------------------------------------------------------- */
 
+  function validDomain(domain) {
+    return (
+      Array.isArray(domain) &&
+      domain.length === 2 &&
+      Number.isFinite(domain[0]) &&
+      Number.isFinite(domain[1]) &&
+      domain[0] < domain[1]
+    );
+  }
+
   class Plot {
     /**
      * @param {HTMLCanvasElement} canvas
@@ -2783,6 +2793,8 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
      *   margin      {top,right,bottom,left} in CSS pixels
      *   aspect      height / width, used when the canvas is auto-sized
      *   equalAspect keep x and y units the same physical size
+     *   xDomain     optional fixed [min, max] range for the x axis
+     *   yDomain     optional fixed [min, max] range for the y axis
      */
     constructor(canvas, options = {}) {
       this.canvas = canvas;
@@ -2794,6 +2806,8 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
       );
       this.aspect = options.aspect != null ? options.aspect : 0.72;
       this.equal = options.equalAspect === true;
+      this.fixedXDomain = validDomain(options.xDomain) ? options.xDomain.slice() : null;
+      this.fixedYDomain = validDomain(options.yDomain) ? options.yDomain.slice() : null;
       this.theme = new Theme(canvas);
       this.domain = { x0: 0, x1: 1, y0: 0, y1: 1 };
       this.width = 0;
@@ -2843,18 +2857,44 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
       return this;
     }
 
-    /** Sets the data range shown by the plot area. */
+    /** Sets the data range shown by the plot area. Fixed panel domains win. */
     setDomain(x0, x1, y0, y1) {
+      if (this.fixedXDomain) [x0, x1] = this.fixedXDomain;
+      if (this.fixedYDomain) [y0, y1] = this.fixedYDomain;
       this.domain = { x0, x1, y0, y1 };
       if (this.equal) this._equalise();
       return this;
     }
 
     _equalise() {
-      const { x0, x1, y0, y1 } = this.domain;
+      let { x0, x1, y0, y1 } = this.domain;
       const dataWidth = x1 - x0;
       const dataHeight = y1 - y0;
       if (dataWidth <= 0 || dataHeight <= 0) return;
+
+      // If one axis is fixed, preserve it exactly and expand/contract only the
+      // other axis to keep equal physical units. If both are fixed, explicit
+      // limits take precedence over equalAspect.
+      if (this.fixedXDomain && this.fixedYDomain) return;
+
+      if (this.fixedYDomain) {
+        [y0, y1] = this.fixedYDomain;
+        const scale = this.plotHeight / (y1 - y0);
+        const spanX = this.plotWidth / scale;
+        const cx = (x0 + x1) / 2;
+        this.domain = { x0: cx - spanX / 2, x1: cx + spanX / 2, y0, y1 };
+        return;
+      }
+
+      if (this.fixedXDomain) {
+        [x0, x1] = this.fixedXDomain;
+        const scale = this.plotWidth / (x1 - x0);
+        const spanY = this.plotHeight / scale;
+        const cy = (y0 + y1) / 2;
+        this.domain = { x0, x1, y0: cy - spanY / 2, y1: cy + spanY / 2 };
+        return;
+      }
+
       const scaleX = this.plotWidth / dataWidth;
       const scaleY = this.plotHeight / dataHeight;
       const scale = Math.min(scaleX, scaleY);
@@ -4031,7 +4071,8 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
    *   local      initial values for the figure's own controls
    *   columns    panel grid columns (1-4) or a per-row layout array
    *   panels     array of panel specs { key, title, aspect, equalAspect,
-   *              margin, colour, draw(plot, context), hover(event, context) }
+   *              xDomain, yDomain, margin, colour, draw(plot, context),
+   *              hover(event, context) }
    *   legend     array of { label, color, kind }
    *   caption    text under the figure, prefixed with the figure number
    *   table      function returning { columns, rows } for the table view
@@ -4100,6 +4141,8 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
         const plot = new Plot(canvas, {
           aspect: panelSpec.aspect,
           equalAspect: panelSpec.equalAspect,
+          xDomain: panelSpec.xDomain,
+          yDomain: panelSpec.yDomain,
           margin: panelSpec.margin,
         });
         figure.plots.set(panelSpec.key, { plot, spec: panelSpec, panel });
@@ -4629,6 +4672,7 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
               key: 'side',
               title: 'Side view â€” the vertical viewing plane',
               aspect: 0.68,
+              yDomain: [-36, 810],
               margin: { top: 16, right: 18, bottom: 34, left: 46 },
               draw: drawNotationSide,
               hover: (point) =>
@@ -5700,6 +5744,7 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
               key: 'side',
               title: 'Side view along the central viewing direction â€” common to all three',
               aspect: 0.34,
+              yDomain: [-40, 550],
               margin: { top: 14, right: 18, bottom: 34, left: 50 },
               draw: drawExtensionSide,
             },
@@ -6051,6 +6096,7 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
           title: 'After the transformation',
           aspect: 0.55,
           equalAspect: false,
+          yDomain: [-80, 650],
           margin: { top: 14, right: 16, bottom: 34, left: 46 },
           draw: drawZeroPlaneAfter,
         },
@@ -6261,6 +6307,7 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
               key: 'band',
               title: 'Admissible height band along the profile',
               aspect: 0.42,
+              yDomain: [-40, 700],
               margin: { top: 14, right: 18, bottom: 34, left: 50 },
               draw: drawCurvatureBand,
               hover: hoverCurvature,
@@ -6274,6 +6321,7 @@ M1001 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">â
               key: 'radius',
               title: 'Local safe height Î·/Îº against the world height',
               aspect: 0.3,
+              yDomain: [0, 1080],
               margin: { top: 14, right: 18, bottom: 38, left: 56 },
               draw: drawSafeHeight,
               hover: hoverCurvature,

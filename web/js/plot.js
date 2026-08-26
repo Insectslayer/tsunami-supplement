@@ -94,6 +94,16 @@
    * Plot
    * ---------------------------------------------------------------- */
 
+  function validDomain(domain) {
+    return (
+      Array.isArray(domain) &&
+      domain.length === 2 &&
+      Number.isFinite(domain[0]) &&
+      Number.isFinite(domain[1]) &&
+      domain[0] < domain[1]
+    );
+  }
+
   class Plot {
     /**
      * @param {HTMLCanvasElement} canvas
@@ -101,6 +111,8 @@
      *   margin      {top,right,bottom,left} in CSS pixels
      *   aspect      height / width, used when the canvas is auto-sized
      *   equalAspect keep x and y units the same physical size
+     *   xDomain     optional fixed [min, max] range for the x axis
+     *   yDomain     optional fixed [min, max] range for the y axis
      */
     constructor(canvas, options = {}) {
       this.canvas = canvas;
@@ -112,6 +124,8 @@
       );
       this.aspect = options.aspect != null ? options.aspect : 0.72;
       this.equal = options.equalAspect === true;
+      this.fixedXDomain = validDomain(options.xDomain) ? options.xDomain.slice() : null;
+      this.fixedYDomain = validDomain(options.yDomain) ? options.yDomain.slice() : null;
       this.theme = new Theme(canvas);
       this.domain = { x0: 0, x1: 1, y0: 0, y1: 1 };
       this.width = 0;
@@ -161,18 +175,65 @@
       return this;
     }
 
-    /** Sets the data range shown by the plot area. */
+    /** Sets the data range shown by the plot area. Fixed panel domains win. */
     setDomain(x0, x1, y0, y1) {
+      if (this.fixedXDomain) [x0, x1] = this.fixedXDomain;
+      if (this.fixedYDomain) [y0, y1] = this.fixedYDomain;
       this.domain = { x0, x1, y0, y1 };
       if (this.equal) this._equalise();
       return this;
     }
 
     _equalise() {
-      const { x0, x1, y0, y1 } = this.domain;
+      let { x0, x1, y0, y1 } = this.domain;
       const dataWidth = x1 - x0;
       const dataHeight = y1 - y0;
       if (dataWidth <= 0 || dataHeight <= 0) return;
+
+      // Fixed domains are treated as the minimum visible ranges.  With
+      // equalAspect enabled we may need to add symmetric padding to one axis
+      // so that one data unit has exactly the same physical size on x and y.
+      // This is especially important for metric side views: changing an
+      // uplift parameter must never make the geometry visually shrink.
+      if (this.fixedXDomain && this.fixedYDomain) {
+        [x0, x1] = this.fixedXDomain;
+        [y0, y1] = this.fixedYDomain;
+        const fixedWidth = x1 - x0;
+        const fixedHeight = y1 - y0;
+        const scaleX = this.plotWidth / fixedWidth;
+        const scaleY = this.plotHeight / fixedHeight;
+        const scale = Math.min(scaleX, scaleY);
+        const spanX = this.plotWidth / scale;
+        const spanY = this.plotHeight / scale;
+        const cx = (x0 + x1) / 2;
+        const cy = (y0 + y1) / 2;
+        this.domain = {
+          x0: cx - spanX / 2,
+          x1: cx + spanX / 2,
+          y0: cy - spanY / 2,
+          y1: cy + spanY / 2,
+        };
+        return;
+      }
+
+      if (this.fixedYDomain) {
+        [y0, y1] = this.fixedYDomain;
+        const scale = this.plotHeight / (y1 - y0);
+        const spanX = this.plotWidth / scale;
+        const cx = (x0 + x1) / 2;
+        this.domain = { x0: cx - spanX / 2, x1: cx + spanX / 2, y0, y1 };
+        return;
+      }
+
+      if (this.fixedXDomain) {
+        [x0, x1] = this.fixedXDomain;
+        const scale = this.plotWidth / (x1 - x0);
+        const spanY = this.plotHeight / scale;
+        const cy = (y0 + y1) / 2;
+        this.domain = { x0, x1, y0: cy - spanY / 2, y1: cy + spanY / 2 };
+        return;
+      }
+
       const scaleX = this.plotWidth / dataWidth;
       const scaleY = this.plotHeight / dataHeight;
       const scale = Math.min(scaleX, scaleY);

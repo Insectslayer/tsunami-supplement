@@ -108,6 +108,9 @@
               key: 'side',
               title: 'Side view — the vertical viewing plane',
               aspect: 0.68,
+              equalAspect: true,
+              xDomain: [-60, 560],
+              yDomain: [-36, 810],
               margin: { top: 16, right: 18, bottom: 34, left: 46 },
               draw: drawNotationSide,
               hover: (point) =>

@@ -135,7 +135,8 @@
    *   local      initial values for the figure's own controls
    *   columns    panel grid columns (1-4) or a per-row layout array
    *   panels     array of panel specs { key, title, aspect, equalAspect,
-   *              margin, colour, draw(plot, context), hover(event, context) }
+   *              xDomain, yDomain, margin, colour, draw(plot, context),
+   *              hover(event, context) }
    *   legend     array of { label, color, kind }
    *   caption    text under the figure, prefixed with the figure number
    *   table      function returning { columns, rows } for the table view
@@ -204,6 +205,8 @@
         const plot = new Plot(canvas, {
           aspect: panelSpec.aspect,
           equalAspect: panelSpec.equalAspect,
+          xDomain: panelSpec.xDomain,
+          yDomain: panelSpec.yDomain,
           margin: panelSpec.margin,
         });
         figure.plots.set(panelSpec.key, { plot, spec: panelSpec, panel });
