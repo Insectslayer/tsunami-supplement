@@ -12,6 +12,7 @@
     drawTopViewGround,
     drawGroundTiles,
     drawObserver,
+    drawAngleArc,
     formatDegrees,
   } = global.FigureKit;
 
@@ -210,13 +211,19 @@
           context.state.alphaW,
           context.local.mu
         );
-        const fov = camera.fieldOfView(distances).map(toPaperPlane);
-        if (fov.length > 2) {
-          plot.polygon(fov, {
-            fill: withAlpha(theme.accent, 0.14),
-            stroke: theme.accent,
-            width: 1.75,
-          });
+        const fill = withAlpha(theme.accent, 0.14);
+        const fovLimit = radius * 4; // cap only far outside the visible panel, not at the world boundary
+        const mesh = camera.fieldOfViewMesh(distances, fovLimit, 3);
+        for (const triangle of mesh) {
+          plot.polygon(triangle.map(toPaperPlane), { fill });
+        }
+        const fovs = camera
+          .fieldOfViewPolygons(distances, fovLimit)
+          .map((polygon) => polygon.map(toPaperPlane));
+        for (const fov of fovs) {
+          if (fov.length > 2) {
+            plot.polygon(fov, { stroke: theme.accent, width: 1.75 });
+          }
         }
       }
     });
@@ -373,18 +380,25 @@
 
     plot.clip(() => {
       drawTopViewGround(plot, PARAMS, { alpha: 0.12 });
-      const flatFov = camera
-        .fieldOfView(camera.distances('flat'))
-        .map(toPaperPlane);
+      const flatFov = camera.fieldOfView(camera.distances('flat')).map(toPaperPlane);
       if (flatFov.length > 2) {
         plot.polygon(flatFov, { stroke: withAlpha(plot.theme.muted, 0.85), width: 1.1 });
       }
       const lut = model(name).lut(context.state.alphaW);
-      const fov = camera
-        .fieldOfView(camera.distances('mixed', lut, context.local.mu))
-        .map(toPaperPlane);
-      if (fov.length > 2) {
-        plot.polygon(fov, { fill: withAlpha(color, 0.16), stroke: color, width: 1.75 });
+      const distances = camera.distances('mixed', lut, context.local.mu);
+      const fill = withAlpha(color, 0.16);
+      const fovLimit = radius * 4; // keep the FOV independent of the finite world disc
+      const mesh = camera.fieldOfViewMesh(distances, fovLimit, 3);
+      for (const triangle of mesh) {
+        plot.polygon(triangle.map(toPaperPlane), { fill });
+      }
+      const fovs = camera
+        .fieldOfViewPolygons(distances, fovLimit)
+        .map((polygon) => polygon.map(toPaperPlane));
+      for (const fov of fovs) {
+        if (fov.length > 2) {
+          plot.polygon(fov, { stroke: color, width: 1.75 });
+        }
       }
     });
 
@@ -396,6 +410,7 @@
     const h = PARAMS.observerHeight;
     const profile = model(name).at(context.state.alphaW);
     const color = plot.theme.series[PROFILE_SLOT[name]];
+    const theme = plot.theme;
 
     plot.setDomain(-40, radius + 40, -60, radius + 60);
     plot.axes({ grid: false, xTicks: [0, 250, 500], yTicks: [0, 250, 500] });
@@ -406,14 +421,49 @@
       points.push(profile.dToXY(d));
     }
 
+    const alphaRad = context.local.alpha * DEG;
+    const halfV = cameraFor('compare', 5).halfVFov * DEG;
+    const dirX = Math.sin(alphaRad);
+    const dirZ = -Math.cos(alphaRad);
+    const reach = radius * 2.6;
+
     plot.clip(() => {
-      plot.line(0, 0, radius, 0, { color: withAlpha(plot.theme.text, 0.22), width: 1 });
+      plot.line(0, 0, radius, 0, { color: withAlpha(theme.text, 0.22), width: 1 });
       plot.polyline(points, { color, width: 2.25 });
+
+      plot.line(0, 0, 0, h, { color: theme.axis, dash: [3, 3], width: 1 });
+
+      for (const edge of [alphaRad - halfV, alphaRad + halfV]) {
+        plot.line(0, h, Math.sin(edge) * reach, h - Math.cos(edge) * reach, {
+          color: theme.muted,
+          dash: [4, 4],
+          width: 1.2,
+        });
+      }
+
+      plot.line(0, h, dirX * reach, h + dirZ * reach, {
+        color: theme.critical,
+        width: 1.5,
+      });
+
       const [bx, bz] = profile.dToXY(radius);
-      plot.line(0, h, bx, bz, { color: plot.theme.critical, dash: [4, 3], width: 1.1 });
+      plot.line(0, h, bx, bz, { color: theme.critical, dash: [4, 3], width: 1.1 });
       plot.marker(bx, bz, { color, radius: 3.5 });
     });
-    drawObserver(plot, h, { color: plot.theme.critical, label: false, radius: 3 });
+
+    drawObserver(plot, h, { color: theme.critical, label: false, radius: 3 });
+
+    const arcRadius = Math.min(24, plot.plotHeight * 0.14);
+    drawAngleArc(
+      plot,
+      0,
+      h,
+      arcRadius,
+      -Math.PI / 2,
+      -Math.PI / 2 + alphaRad,
+      'α',
+      { color: theme.critical, labelColor: theme.critical }
+    );
   }
 
   global.Figures2D = figures;

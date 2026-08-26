@@ -380,13 +380,33 @@
     directionalDistances(lut) {
       const { dy, dz, pixelD, width, height } = this.geometry();
       const d = new Float64Array(width * height);
+
       for (let row = 0; row < height; row += 1) {
         const index0 = row * width;
-        const forward = interpolate(lut, Math.atan2(dy[index0], dz[index0]));
+        const rowDy = dy[index0];
+        const rowDz = dz[index0];
+
+        /*
+         * The directional construction only uplifts the half-plane in front
+         * of the observer.  Rays that cross alpha = 0 point behind the
+         * observer; if they still point downward they hit the unchanged flat
+         * continuation of the ground rather than the sky.
+         */
+        if (rowDy <= 0) {
+          for (let col = 0; col < width; col += 1) {
+            const index = index0 + col;
+            d[index] = dz[index] > 0 ? (this.h * pixelD[index]) / dz[index] : Infinity;
+          }
+          continue;
+        }
+
+        // In front of the observer, keep the full transformed angular range:
+        // a lifted profile can be hit even by a ray whose vertical component
+        // points upward (angles above 90 degrees).
+        const forward = interpolate(lut, Math.atan2(rowDy, rowDz));
         for (let col = 0; col < width; col += 1) {
           const index = index0 + col;
-          const rowDy = dy[index];
-          if (rowDy === 0 || !isFinite(forward)) {
+          if (!isFinite(forward)) {
             d[index] = Infinity;
             continue;
           }
@@ -397,18 +417,26 @@
       return d;
     }
 
-    /** Reciprocal interpolation between the two extensions. */
+    /**
+     * Reciprocal interpolation between the two extensions.
+     *
+     * Infinity is a meaningful distance here: its reciprocal is zero.  Do not
+     * fall back to the other construction when only one branch is finite,
+     * because that silently turns the mix into mu = 0 or mu = 1.  Applying the
+     * reciprocal formula literally also gives the correct limiting behaviour
+     * across the directional/radial horizons.
+     */
     static mixDistances(directional, radial, mu) {
       const d = new Float64Array(directional.length);
+      const wDirectional = 1 - mu;
+      const wRadial = mu;
       for (let i = 0; i < d.length; i += 1) {
         const a = directional[i];
         const b = radial[i];
-        const validA = isFinite(a) && a > 0;
-        const validB = isFinite(b) && b > 0;
-        if (validA && validB) d[i] = 1 / ((1 - mu) / a + mu / b);
-        else if (validA) d[i] = a;
-        else if (validB) d[i] = b;
-        else d[i] = Infinity;
+        const invA = isFinite(a) && a > 0 ? 1 / a : 0;
+        const invB = isFinite(b) && b > 0 ? 1 / b : 0;
+        const inverse = wDirectional * invA + wRadial * invB;
+        d[i] = inverse > 0 ? 1 / inverse : Infinity;
       }
       return d;
     }
@@ -451,7 +479,199 @@
       return { rx, ry, width, height };
     }
 
-    /** Outline of the visible ground region, for the top view. */
+    /**
+     * Outlines of the visible ground regions, for top views.
+     *
+     * A camera FOV can split into more than one connected ground region when
+     * it crosses a singular direction (notably the radial construction near
+     * alpha = 180 deg).  Treating all finite perimeter samples as one polygon
+     * connects the regions by a spurious long edge and makes the fill jump to
+     * the opposite half-plane.  We therefore label connected finite pixels,
+     * build the exposed cell-edge loops of each component, and map those loops
+     * to ground coordinates.
+     */
+    fieldOfViewPolygons(distances, maxDistance = Infinity) {
+      const { rx, ry, width, height } = this.groundCoordinates(distances);
+      const size = width * height;
+      const labels = new Int32Array(size);
+      const components = [];
+      let nextLabel = 0;
+
+      const valid = (index) =>
+        isFinite(rx[index]) && isFinite(ry[index]) &&
+        isFinite(distances[index]) && distances[index] <= maxDistance;
+      const neighbours = (index) => {
+        const row = Math.floor(index / width);
+        const col = index - row * width;
+        const out = [];
+        if (row > 0) out.push(index - width);
+        if (col + 1 < width) out.push(index + 1);
+        if (row + 1 < height) out.push(index + width);
+        if (col > 0) out.push(index - 1);
+        return out;
+      };
+
+      for (let seed = 0; seed < size; seed += 1) {
+        if (labels[seed] !== 0 || !valid(seed)) continue;
+        nextLabel += 1;
+        const queue = [seed];
+        labels[seed] = nextLabel;
+        const pixels = [];
+        for (let q = 0; q < queue.length; q += 1) {
+          const index = queue[q];
+          pixels.push(index);
+          for (const nb of neighbours(index)) {
+            if (labels[nb] === 0 && valid(nb)) {
+              labels[nb] = nextLabel;
+              queue.push(nb);
+            }
+          }
+        }
+        components.push({ label: nextLabel, pixels });
+      }
+
+      const vertexKey = (x, y) => `${x},${y}`;
+      const parseVertex = (key) => key.split(',').map(Number);
+
+      const groundAtVertex = (vx, vy, label) => {
+        let sx = 0;
+        let sy = 0;
+        let count = 0;
+        for (let dr = -1; dr <= 0; dr += 1) {
+          for (let dc = -1; dc <= 0; dc += 1) {
+            const row = vy + dr;
+            const col = vx + dc;
+            if (row < 0 || row >= height || col < 0 || col >= width) continue;
+            const index = row * width + col;
+            if (labels[index] !== label) continue;
+            sx += rx[index];
+            sy += ry[index];
+            count += 1;
+          }
+        }
+        return count ? [sx / count, sy / count] : null;
+      };
+
+      const polygons = [];
+      for (const component of components) {
+        const label = component.label;
+        const edges = new Map();
+        const addEdge = (x0, y0, x1, y1) => {
+          const key = vertexKey(x0, y0);
+          if (!edges.has(key)) edges.set(key, []);
+          edges.get(key).push(vertexKey(x1, y1));
+        };
+        const same = (row, col) =>
+          row >= 0 && row < height && col >= 0 && col < width &&
+          labels[row * width + col] === label;
+
+        for (const index of component.pixels) {
+          const row = Math.floor(index / width);
+          const col = index - row * width;
+          // Directed clockwise in image coordinates (y increases downward).
+          if (!same(row - 1, col)) addEdge(col, row, col + 1, row);
+          if (!same(row, col + 1)) addEdge(col + 1, row, col + 1, row + 1);
+          if (!same(row + 1, col)) addEdge(col + 1, row + 1, col, row + 1);
+          if (!same(row, col - 1)) addEdge(col, row + 1, col, row);
+        }
+
+        while (edges.size) {
+          const start = edges.keys().next().value;
+          const loop = [];
+          let current = start;
+          let guard = 0;
+          do {
+            loop.push(current);
+            const outgoing = edges.get(current);
+            if (!outgoing || !outgoing.length) break;
+            const next = outgoing.pop();
+            if (!outgoing.length) edges.delete(current);
+            current = next;
+            guard += 1;
+          } while (current !== start && guard <= component.pixels.length * 8 + 16);
+
+          if (current !== start || loop.length < 3) continue;
+          const points = [];
+          for (const key of loop) {
+            const [vx, vy] = parseVertex(key);
+            const point = groundAtVertex(vx, vy, label);
+            if (point && isFinite(point[0]) && isFinite(point[1])) points.push(point);
+          }
+          if (points.length > 2) {
+            let twiceArea = 0;
+            for (let i = 0; i < points.length; i += 1) {
+              const a = points[i];
+              const b = points[(i + 1) % points.length];
+              twiceArea += a[0] * b[1] - b[0] * a[1];
+            }
+            // Suppress tiny loops caused by one or two marginal sensor cells.
+            if (Math.abs(twiceArea) > 2) polygons.push(points);
+          }
+        }
+      }
+
+      return polygons;
+    }
+
+    /**
+     * Piecewise-linear fill of the visible ground region.
+     *
+     * Mapping one large sensor-boundary polygon into the ground plane is not
+     * reliable when the camera crosses the zenith: the projection can wrap
+     * through infinity and the boundary polygon self-intersects.  Triangulating
+     * the sensor locally avoids that global wrap.  Cells touching invalid rays
+     * (or points beyond maxDistance) are simply omitted.
+     */
+    fieldOfViewMesh(distances, maxDistance = Infinity, stride = 3) {
+      const { rx, ry, width, height } = this.groundCoordinates(distances);
+      const triangles = [];
+      const valid = (index) =>
+        isFinite(rx[index]) && isFinite(ry[index]) &&
+        isFinite(distances[index]) && distances[index] <= maxDistance;
+      const point = (index) => [rx[index], ry[index]];
+      const maxEdge = isFinite(maxDistance) ? Math.max(20, maxDistance * 0.35) : Infinity;
+      const saneTriangle = (a, b, c) => {
+        const ab = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        const bc = Math.hypot(b[0] - c[0], b[1] - c[1]);
+        const ca = Math.hypot(c[0] - a[0], c[1] - a[1]);
+        return ab <= maxEdge && bc <= maxEdge && ca <= maxEdge;
+      };
+
+      const step = Math.max(1, Math.floor(stride));
+      for (let row = 0; row < height - 1; row += step) {
+        const nextRow = Math.min(height - 1, row + step);
+        for (let col = 0; col < width - 1; col += step) {
+          const nextCol = Math.min(width - 1, col + step);
+          const i00 = row * width + col;
+          const i10 = row * width + nextCol;
+          const i01 = nextRow * width + col;
+          const i11 = nextRow * width + nextCol;
+
+          if (valid(i00) && valid(i10) && valid(i11)) {
+            const a = point(i00);
+            const b = point(i10);
+            const c = point(i11);
+            if (saneTriangle(a, b, c)) triangles.push([a, b, c]);
+          }
+          if (valid(i00) && valid(i11) && valid(i01)) {
+            const a = point(i00);
+            const b = point(i11);
+            const c = point(i01);
+            if (saneTriangle(a, b, c)) triangles.push([a, b, c]);
+          }
+        }
+      }
+      return triangles;
+    }
+
+    /**
+     * Simple sensor-perimeter FOV outline.
+     *
+     * This is the original smooth construction and is ideal for the flat
+     * plane, where the finite ground region is a single non-wrapping patch.
+     * Transformed top views that can cross a singular direction use
+     * fieldOfViewPolygons() instead.
+     */
     fieldOfView(distances) {
       const { rx, ry, width, height } = this.groundCoordinates(distances);
       let firstRow = 0;
