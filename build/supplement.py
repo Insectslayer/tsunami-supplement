@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import csv
 import html
 import re
 import shutil
@@ -114,86 +113,123 @@ def markdown_to_html(source: str) -> str:
     return "\n".join(output)
 
 
-def describe_csv(path: Path) -> str:
-    with path.open("r", encoding="utf-8-sig", newline="") as stream:
-        reader = csv.reader(stream)
-        rows = sum(1 for _ in reader)
-    return f"{max(0, rows - 1):,} data rows · CSV"
-
-
-def describe_file(path: Path) -> str:
-    size = path.stat().st_size
-    if size >= 1024 * 1024:
-        size_text = f"{size / (1024 * 1024):.1f} MB"
-    elif size >= 1024:
-        size_text = f"{size / 1024:.0f} KB"
-    else:
-        size_text = f"{size} bytes"
-    return f"{size_text} · {path.suffix.lstrip('.').upper() or 'file'}"
-
-
-def resource_grid(kind: str, source: Path, files: list[Path]) -> str:
-    cards: list[str] = []
-    previews: list[str] = []
-    for index, path in enumerate(sorted(files)):
-        relative = path.relative_to(source).as_posix()
-        href = f"materials/{kind}/{relative}"
-        label = html.escape(relative)
-        if path.suffix.lower() == ".csv":
-            preview_id = f"preview-{kind}-{index}"
-            detail = describe_csv(path)
-            action = (
-                f'<button class="preview-button" type="button" data-csv="{href}" '
-                f'aria-controls="{preview_id}" aria-expanded="false">Preview</button>'
-            )
-            previews.append(f'<div class="dataset-preview" id="{preview_id}" hidden></div>')
-        else:
-            detail = describe_file(path)
-            action = ""
-        cards.append(
-            '<article class="resource-card">'
-            f'<h4>{label}</h4><p>{html.escape(detail)}</p>'
-            '<div class="resource-actions">'
-            f'<a class="file-link" href="{href}" download>Download</a>{action}'
-            '</div></article>'
+def file_controls(
+    kind: str,
+    source: Path,
+    path: Path,
+    *,
+    label: bool = False,
+    href_override: str | None = None,
+) -> str:
+    relative = path.relative_to(source).as_posix()
+    href = href_override or f"materials/{kind}/{relative}"
+    identifier = f"preview-{kind}-{slugify(relative)}"
+    name = f'<span class="file-name">{html.escape(relative)}</span>' if label else ""
+    preview = ""
+    panel = ""
+    if path.suffix.lower() == ".csv":
+        preview = (
+            f'<button class="preview-button" type="button" data-csv="{href}" '
+            f'aria-controls="{identifier}" aria-expanded="false">Preview</button>'
         )
-    return '<div class="resource-grid">' + "".join(cards + previews) + "</div>"
+        panel = f'<div class="dataset-preview" id="{identifier}" hidden></div>'
+    return (
+        f'<div class="context-file-actions">{name}'
+        f'{preview}<a class="file-link" href="{href}" download>Download</a></div>{panel}'
+    )
 
 
-def insert_before(content: str, marker: str, addition: str) -> str:
-    if marker not in content:
-        raise ValueError(f"Expected generated heading not found: {marker}")
-    return content.replace(marker, f"{addition}\n{marker}", 1)
+def append_to_list_item(content: str, needle: str, addition: str) -> str:
+    start = content.find(needle)
+    if start < 0:
+        raise ValueError(f"Expected file description not found: {needle}")
+    end = content.find("</li>", start)
+    if end < 0:
+        raise ValueError(f"List item does not close after: {needle}")
+    return content[:end] + addition + content[end:]
+
+
+def append_after_description(content: str, heading_id: str, addition: str) -> str:
+    marker = f'id="{heading_id}"'
+    start = content.find(marker)
+    if start < 0:
+        raise ValueError(f"Expected dataset heading not found: {heading_id}")
+    paragraph_end = content.find("</p>", start)
+    if paragraph_end < 0:
+        raise ValueError(f"Dataset description does not follow: {heading_id}")
+    paragraph_end += len("</p>")
+    return content[:paragraph_end] + addition + content[paragraph_end:]
 
 
 def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
-    visible_files = [
-        path
-        for path in source.rglob("*")
-        if path.is_file()
-        and path.name != "_README.md"
-        and not any(part.startswith(".") for part in path.relative_to(source).parts)
-    ]
     if kind == "quantitative":
-        overview_files = [path for path in visible_files if path.suffix.lower() != ".csv"]
-        data_files = [path for path in visible_files if path.suffix.lower() == ".csv"]
-        content = insert_before(
+        for filename in ("Tsunami_quantitative_analysis.ipynb", "requirements.txt"):
+            content = append_to_list_item(
+                content,
+                f"<code>{filename}</code>",
+                file_controls(kind, source, source / filename),
+            )
+
+        datasets = {
+            "cityraceaggregated-csv": ["city_race_aggregated.csv"],
+            "cityraceorientationevents-csv": ["city_race_orientation_events.csv"],
+            "cityraceprecision200to500m-csv": ["city_race_precision_200_to_500m.csv"],
+            "cityracecheckpointapproachepisodes-csv": ["city_race_checkpoint_approach_episodes.csv"],
+            "precision-csv": ["precision.csv"],
+            "precisionexclusiondecisions-csv": ["precision_exclusion_decisions.csv"],
+            "questionnairebaseline-csv-questionnaireminimap-csv-questionnairetsunami-csv": [
+                "questionnaire_baseline.csv",
+                "questionnaire_minimap.csv",
+                "questionnaire_tsunami.csv",
+            ],
+            "questionnairecybersickness-csv": ["questionnaire_cybersickness.csv"],
+            "questionnaireraw-tlx-csv": ["questionnaire_raw-tlx.csv"],
+            "questionnairesbsod-csv": ["questionnaire_sbsod.csv"],
+            "questionnairedemography-csv": ["questionnaire_demography.csv"],
+            "questionnairepreferences-csv": ["questionnaire_preferences.csv"],
+        }
+        for heading_id, filenames in datasets.items():
+            controls = "".join(
+                file_controls(
+                    kind,
+                    source,
+                    source / "input" / filename,
+                    label=len(filenames) > 1,
+                )
+                for filename in filenames
+            )
+            content = append_after_description(content, heading_id, controls)
+
+        content = append_after_description(
             content,
-            '<h3 id="reproducibility">Reproducibility</h3>',
-            resource_grid(kind, source, overview_files),
-        )
-        content = content.replace(
-            '<h3 id="data-dictionary">Data dictionary</h3>',
-            '<h3 id="data-dictionary">Data dictionary</h3>\n'
-            + resource_grid(kind, source, data_files),
-            1,
+            "detailed-questionnaire-wording",
+            file_controls(kind, source, source / "study_questionnaire.md"),
         )
         return content
 
-    return insert_before(
+    for filename in (
+        "corpus_summary.csv",
+        "codebook.csv",
+        "coding_matrix_anonymized.csv",
+        "theme_summary.csv",
+        "quotation_audit.csv",
+        "quant_qual_integration.csv",
+    ):
+        content = append_to_list_item(
+            content,
+            f"<code>{filename}</code>",
+            file_controls(kind, source, source / filename),
+        )
+    questionnaire = source.parent / "quantitative" / "study_questionnaire.md"
+    return append_to_list_item(
         content,
-        '<h3 id="confidentiality-boundary">Confidentiality Boundary</h3>',
-        resource_grid(kind, source, visible_files),
+        "study_questionnaire.md",
+        file_controls(
+            "quantitative",
+            source.parent / "quantitative",
+            questionnaire,
+            href_override="materials/quantitative/study_questionnaire.md",
+        ),
     )
 
 

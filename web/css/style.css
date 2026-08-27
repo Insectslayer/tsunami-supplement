@@ -956,8 +956,7 @@ td > .katex {
 
 /* Reviewer-facing result and download pages reuse the paper typography. */
 
-.download-banner,
-.resource-card {
+.download-banner {
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -997,41 +996,24 @@ td > .katex {
   background: var(--surface-raised);
 }
 
-.resource-grid {
-  max-width: var(--wide);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 0.8rem;
-  margin: 1.2rem 0 2.5rem;
-}
-
-.resource-card {
-  padding: 0.9rem 1rem;
-  min-width: 0;
-}
-
-.resource-card h4 {
-  margin: 0 0 0.35rem;
-  font-size: 0.92rem;
-  overflow-wrap: anywhere;
-}
-
-.resource-card h4::before {
-  display: none;
-}
-
-.resource-card p {
-  margin: 0 0 0.65rem;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  text-align: left;
-}
-
-.resource-actions {
+.context-file-actions {
   display: flex;
   gap: 0.75rem;
   align-items: center;
   flex-wrap: wrap;
+  max-width: var(--measure);
+  margin: -0.35rem 0 1.15rem;
+}
+
+li > .context-file-actions {
+  margin: 0.4rem 0 0.2rem;
+}
+
+.file-name {
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
 }
 
 .preview-button {
@@ -1046,8 +1028,12 @@ td > .katex {
 }
 
 .dataset-preview {
-  grid-column: 1 / -1;
-  margin: 0;
+  max-width: var(--wide);
+  margin: -0.65rem 0 1.5rem;
+}
+
+li > .dataset-preview {
+  margin: 0.5rem 0 0.8rem;
 }
 
 .dataset-preview[hidden] {
