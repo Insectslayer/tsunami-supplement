@@ -1,0 +1,43 @@
+Participant ID,Location,Age,Gender,How often have you used VR systems before this study?,How familiar are you with teleport-based VR locomotion?,How often do you play 3D video games (non-VR)?,How is your vision?,Are you susceptible to motion sickness?,Dominant hand
+1,SITE1,25–34,Male,6–20 times,Tried once or twice,Daily,I have normal vision (no glasses or contact lenses),2,Right
+2,SITE1,25–34,Female,Regular VR user (weekly or more),Frequently used teleport locomotion,Rarely,I have normal vision (no glasses or contact lenses),2,Right
+3,SITE1,35–45,Male,6–20 times,Tried once or twice,Weekly,I have normal vision (no glasses or contact lenses),1,Right
+4,SITE1,25–34,Male,Never,No prior experience,Weekly,I have normal vision (no glasses or contact lenses),2,Right
+5,SITE1,18–24,Female,More than 20 times,Used occasionally across multiple VR sessions,Weekly,I wear glasses (right now),2,Right
+6,SITE1,18–24,Male,6–20 times,Used occasionally across multiple VR sessions,Never,I have normal vision (no glasses or contact lenses),2,Right
+7,SITE1,18–24,Male,1–5 times,No prior experience,Never,I wear glasses (right now),1,Left
+8,SITE1,25–34,Male,1–5 times,No prior experience,Monthly,I wear glasses (right now),1,Right
+9,SITE1,25–34,Male,1–5 times,No prior experience,Monthly,I wear glasses (right now),2,Right
+10,SITE1,18–24,Female,1–5 times,No prior experience,Weekly,I wear contact lenses (right now),1,Right
+11,SITE1,35–45,Male,More than 20 times,Used occasionally across multiple VR sessions,Weekly,I wear contact lenses (right now),2,Right
+12,SITE1,25–34,Male,6–20 times,Used occasionally across multiple VR sessions,Rarely,I have normal vision (no glasses or contact lenses),1,Right
+13,SITE1,25–34,Male,1–5 times,No prior experience,Rarely,I wear contact lenses (right now),1,Right
+14,SITE1,25–34,Male,Never,No prior experience,Daily,I wear glasses (right now),1,Right
+15,SITE1,25–34,Female,1–5 times,No prior experience,Never,I wear glasses (right now),2,Right
+16,SITE1,25–34,Male,More than 20 times,Frequently used teleport locomotion,Rarely,I have normal vision (no glasses or contact lenses),2,Right
+17,SITE1,25–34,Male,Never,No prior experience,Never,I wear glasses (right now),1,Right
+18,SITE1,25–34,Female,6–20 times,Used occasionally across multiple VR sessions,Rarely,I wear glasses (right now),3,Right
+19,SITE1,35–45,Male,6–20 times,Tried once or twice,Weekly,I wear glasses (right now),2,Right
+20,SITE1,25–34,Male,1–5 times,No prior experience,Rarely,I wear glasses (right now),1,Right
+21,SITE1,35–45,Female,1–5 times,No prior experience,Never,I have normal vision (no glasses or contact lenses),4,Right
+22,SITE1,25–34,Female,1–5 times,No prior experience,Never,I have normal vision (no glasses or contact lenses),2,Right
+23,SITE1,25–34,Female,1–5 times,Tried once or twice,Rarely,I have normal vision (no glasses or contact lenses),2,Right
+24,SITE1,25–34,Female,More than 20 times,Used occasionally across multiple VR sessions,Monthly,I wear contact lenses (right now),1,Right
+1,SITE2,25–34,Female,More than 20 times,Used occasionally across multiple VR sessions,Weekly,I wear glasses (right now),3,Right
+2,SITE2,18–24,Male,More than 20 times,No prior experience,Rarely,I wear glasses (right now),3,Right
+3,SITE2,25–34,Male,Regular VR user (weekly or more),Frequently used teleport locomotion,Weekly,I have normal vision (no glasses or contact lenses),1,Right
+4,SITE2,25–34,Male,1–5 times,Tried once or twice,Daily,I have normal vision (no glasses or contact lenses),1,Right
+5,SITE2,35–45,Male,Regular VR user (weekly or more),Frequently used teleport locomotion,Daily,I have normal vision (no glasses or contact lenses),1,Right
+6,SITE2,18–24,Male,Regular VR user (weekly or more),Frequently used teleport locomotion,Daily,I have normal vision (no glasses or contact lenses),3,Right
+7,SITE2,25–34,Male,1–5 times,No prior experience,Never,I wear glasses (right now),1,Right
+8,SITE2,25–34,Male,More than 20 times,Used occasionally across multiple VR sessions,Daily,I have normal vision (no glasses or contact lenses),3,Right
+9,SITE2,25–34,Male,1–5 times,No prior experience,Weekly,I wear glasses (right now),1,Right
+10,SITE2,25–34,Male,6–20 times,Tried once or twice,Rarely,I have normal vision (no glasses or contact lenses),2,Right
+11,SITE2,35–45,Female,More than 20 times,Tried once or twice,Rarely,I wear glasses (right now),2,Right
+12,SITE2,25–34,Female,6–20 times,Tried once or twice,Rarely,I have normal vision (no glasses or contact lenses),2,Right
+13,SITE2,35–45,Male,1–5 times,Tried once or twice,Rarely,I have normal vision (no glasses or contact lenses),1,Right
+14,SITE2,46+,Female,1–5 times,No prior experience,Rarely,I wear glasses (right now),1,Right
+15,SITE2,25–34,Male,Never,No prior experience,Weekly,I wear glasses (right now),1,Right
+16,SITE2,25–34,Male,6–20 times,Used occasionally across multiple VR sessions,Weekly,I have normal vision (no glasses or contact lenses),3,Right
+17,SITE2,18–24,Male,More than 20 times,Frequently used teleport locomotion,Weekly,I wear glasses (right now),2,Right
+18,SITE2,18–24,Male,1–5 times,No prior experience,Monthly,I wear glasses (right now),2,Right

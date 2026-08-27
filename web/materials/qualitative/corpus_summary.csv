@@ -1,0 +1,169 @@
+RecordID,SourceType,ParticipantID,StudySite,ApproxWordCount,Completeness,InclusionStatus,Notes
+SITE2/P01/Interview,Structured contemporaneous notes,SITE2/P01,SITE2,124,Q1;Q2;Q3;Q4;Q5,INCLUDED,No audio consent; quotation-ineligible
+SITE2/P02/Interview,English analytic transcript,SITE2/P02,SITE2,229,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P03/Interview,English analytic transcript,SITE2/P03,SITE2,361,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P04/Interview,English analytic transcript,SITE2/P04,SITE2,402,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P05/Interview,English analytic transcript,SITE2/P05,SITE2,344,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P06/Interview,English analytic transcript,SITE2/P06,SITE2,347,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P07/Interview,Structured contemporaneous notes,SITE2/P07,SITE2,130,Q1;Q2;Q3;Q4;Q5,INCLUDED,No audio consent; quotation-ineligible
+SITE2/P08/Interview,English analytic transcript,SITE2/P08,SITE2,483,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P09/Interview,English analytic transcript,SITE2/P09,SITE2,279,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P10/Interview,English analytic transcript,SITE2/P10,SITE2,610,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P11/Interview,Structured contemporaneous notes,SITE2/P11,SITE2,128,Q1;Q2;Q3;Q4;Q5,INCLUDED,No audio consent; quotation-ineligible
+SITE2/P12/Interview,Structured contemporaneous notes,SITE2/P12,SITE2,71,Q1;Q2;Q3;Q4;Q5,INCLUDED,No audio consent; quotation-ineligible
+SITE2/P13/Interview,English analytic transcript,SITE2/P13,SITE2,214,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P14/Interview,English analytic transcript,SITE2/P14,SITE2,275,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P15/Interview,Structured contemporaneous notes,SITE2/P15,SITE2,221,Q1;Q2;Q3;Q4;Q5,INCLUDED,No audio consent; quotation-ineligible
+SITE2/P16/Interview,English analytic transcript,SITE2/P16,SITE2,325,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P17/Interview,English analytic transcript,SITE2/P17,SITE2,803,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE2/P18/Interview,English analytic transcript,SITE2/P18,SITE2,222,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P01/Interview,English analytic transcript,SITE1/P01,SITE1,525,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P02/Interview,English analytic transcript,SITE1/P02,SITE1,639,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P03/Interview,English analytic transcript,SITE1/P03,SITE1,459,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P04/Interview,English analytic transcript,SITE1/P04,SITE1,437,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P05/Interview,English analytic transcript,SITE1/P05,SITE1,598,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P06/Interview,English analytic transcript,SITE1/P06,SITE1,600,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P07/Interview,English analytic transcript,SITE1/P07,SITE1,227,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P08/Interview,English analytic transcript,SITE1/P08,SITE1,221,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P09/Interview,English analytic transcript,SITE1/P09,SITE1,557,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P10/Interview,English analytic transcript,SITE1/P10,SITE1,385,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P11/Interview,English analytic transcript,SITE1/P11,SITE1,211,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P12/Interview,English analytic transcript,SITE1/P12,SITE1,670,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P13/Interview,English analytic transcript,SITE1/P13,SITE1,533,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P14/Interview,English analytic transcript,SITE1/P14,SITE1,387,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P15/Interview,English analytic transcript,SITE1/P15,SITE1,396,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P16/Interview,English analytic transcript,SITE1/P16,SITE1,241,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P17/Interview,English analytic transcript,SITE1/P17,SITE1,390,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P18/Interview,English analytic transcript,SITE1/P18,SITE1,859,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P19/Interview,English analytic transcript,SITE1/P19,SITE1,400,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P20/Interview,English analytic transcript,SITE1/P20,SITE1,246,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P21/Interview,English analytic transcript,SITE1/P21,SITE1,247,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P22/Interview,English analytic transcript,SITE1/P22,SITE1,485,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P23/Interview,English analytic transcript,SITE1/P23,SITE1,564,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P24/Interview,English analytic transcript,SITE1/P24,SITE1,290,Q1;Q2;Q3;Q4;Q5,INCLUDED,Used as primary interview record
+SITE1/P02/Questionnaire/Baseline,Post-condition free-text response,SITE1/P02,SITE1,41,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P03/Questionnaire/Baseline,Post-condition free-text response,SITE1/P03,SITE1,8,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P04/Questionnaire/Baseline,Post-condition free-text response,SITE1/P04,SITE1,56,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P01/Questionnaire/Baseline,Post-condition free-text response,SITE2/P01,SITE2,21,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P02/Questionnaire/Baseline,Post-condition free-text response,SITE2/P02,SITE2,3,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P03/Questionnaire/Baseline,Post-condition free-text response,SITE2/P03,SITE2,13,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P04/Questionnaire/Baseline,Post-condition free-text response,SITE2/P04,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE2/P05/Questionnaire/Baseline,Post-condition free-text response,SITE2/P05,SITE2,3,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P05/Questionnaire/Baseline,Post-condition free-text response,SITE1/P05,SITE1,22,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P06/Questionnaire/Baseline,Post-condition free-text response,SITE2/P06,SITE2,9,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P06/Questionnaire/Baseline,Post-condition free-text response,SITE1/P06,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P07/Questionnaire/Baseline,Post-condition free-text response,SITE1/P07,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE2/P07/Questionnaire/Baseline,Post-condition free-text response,SITE2/P07,SITE2,7,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P08/Questionnaire/Baseline,Post-condition free-text response,SITE2/P08,SITE2,4,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P08/Questionnaire/Baseline,Post-condition free-text response,SITE1/P08,SITE1,5,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P09/Questionnaire/Baseline,Post-condition free-text response,SITE1/P09,SITE1,14,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P09/Questionnaire/Baseline,Post-condition free-text response,SITE2/P09,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P10/Questionnaire/Baseline,Post-condition free-text response,SITE1/P10,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE2/P10/Questionnaire/Baseline,Post-condition free-text response,SITE2/P10,SITE2,21,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P11/Questionnaire/Baseline,Post-condition free-text response,SITE1/P11,SITE1,9,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P12/Questionnaire/Baseline,Post-condition free-text response,SITE1/P12,SITE1,16,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P13/Questionnaire/Baseline,Post-condition free-text response,SITE1/P13,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P14/Questionnaire/Baseline,Post-condition free-text response,SITE1/P14,SITE1,20,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P15/Questionnaire/Baseline,Post-condition free-text response,SITE1/P15,SITE1,12,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P16/Questionnaire/Baseline,Post-condition free-text response,SITE1/P16,SITE1,17,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P11/Questionnaire/Baseline,Post-condition free-text response,SITE2/P11,SITE2,6,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P12/Questionnaire/Baseline,Post-condition free-text response,SITE2/P12,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P17/Questionnaire/Baseline,Post-condition free-text response,SITE1/P17,SITE1,14,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P13/Questionnaire/Baseline,Post-condition free-text response,SITE2/P13,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE2/P14/Questionnaire/Baseline,Post-condition free-text response,SITE2/P14,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P18/Questionnaire/Baseline,Post-condition free-text response,SITE1/P18,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE2/P15/Questionnaire/Baseline,Post-condition free-text response,SITE2/P15,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE2/P16/Questionnaire/Baseline,Post-condition free-text response,SITE2/P16,SITE2,49,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P17/Questionnaire/Baseline,Post-condition free-text response,SITE2/P17,SITE2,98,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE2/P18/Questionnaire/Baseline,Post-condition free-text response,SITE2/P18,SITE2,41,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P19/Questionnaire/Baseline,Post-condition free-text response,SITE1/P19,SITE1,12,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P20/Questionnaire/Baseline,Post-condition free-text response,SITE1/P20,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P21/Questionnaire/Baseline,Post-condition free-text response,SITE1/P21,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P22/Questionnaire/Baseline,Post-condition free-text response,SITE1/P22,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Baseline
+SITE1/P23/Questionnaire/Baseline,Post-condition free-text response,SITE1/P23,SITE1,87,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P01/Questionnaire/Baseline,Post-condition free-text response,SITE1/P01,SITE1,17,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P24/Questionnaire/Baseline,Post-condition free-text response,SITE1/P24,SITE1,1,FIELD_PRESENT,INCLUDED,Method=Baseline
+SITE1/P02/Questionnaire/Minimap,Post-condition free-text response,SITE1/P02,SITE1,23,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P03/Questionnaire/Minimap,Post-condition free-text response,SITE1/P03,SITE1,16,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P04/Questionnaire/Minimap,Post-condition free-text response,SITE1/P04,SITE1,34,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P01/Questionnaire/Minimap,Post-condition free-text response,SITE2/P01,SITE2,33,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P02/Questionnaire/Minimap,Post-condition free-text response,SITE2/P02,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE2/P03/Questionnaire/Minimap,Post-condition free-text response,SITE2/P03,SITE2,73,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P04/Questionnaire/Minimap,Post-condition free-text response,SITE2/P04,SITE2,7,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P05/Questionnaire/Minimap,Post-condition free-text response,SITE2/P05,SITE2,19,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P05/Questionnaire/Minimap,Post-condition free-text response,SITE1/P05,SITE1,15,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P06/Questionnaire/Minimap,Post-condition free-text response,SITE2/P06,SITE2,13,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P06/Questionnaire/Minimap,Post-condition free-text response,SITE1/P06,SITE1,35,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P07/Questionnaire/Minimap,Post-condition free-text response,SITE1/P07,SITE1,76,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P07/Questionnaire/Minimap,Post-condition free-text response,SITE2/P07,SITE2,13,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P08/Questionnaire/Minimap,Post-condition free-text response,SITE2/P08,SITE2,28,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P08/Questionnaire/Minimap,Post-condition free-text response,SITE1/P08,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P09/Questionnaire/Minimap,Post-condition free-text response,SITE1/P09,SITE1,13,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P09/Questionnaire/Minimap,Post-condition free-text response,SITE2/P09,SITE2,17,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P10/Questionnaire/Minimap,Post-condition free-text response,SITE1/P10,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE2/P10/Questionnaire/Minimap,Post-condition free-text response,SITE2/P10,SITE2,3,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P11/Questionnaire/Minimap,Post-condition free-text response,SITE1/P11,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P12/Questionnaire/Minimap,Post-condition free-text response,SITE1/P12,SITE1,29,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P13/Questionnaire/Minimap,Post-condition free-text response,SITE1/P13,SITE1,1,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P14/Questionnaire/Minimap,Post-condition free-text response,SITE1/P14,SITE1,40,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P15/Questionnaire/Minimap,Post-condition free-text response,SITE1/P15,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P16/Questionnaire/Minimap,Post-condition free-text response,SITE1/P16,SITE1,50,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P11/Questionnaire/Minimap,Post-condition free-text response,SITE2/P11,SITE2,2,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P12/Questionnaire/Minimap,Post-condition free-text response,SITE2/P12,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P17/Questionnaire/Minimap,Post-condition free-text response,SITE1/P17,SITE1,25,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P13/Questionnaire/Minimap,Post-condition free-text response,SITE2/P13,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE2/P14/Questionnaire/Minimap,Post-condition free-text response,SITE2/P14,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P18/Questionnaire/Minimap,Post-condition free-text response,SITE1/P18,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE2/P15/Questionnaire/Minimap,Post-condition free-text response,SITE2/P15,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE2/P16/Questionnaire/Minimap,Post-condition free-text response,SITE2/P16,SITE2,31,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P17/Questionnaire/Minimap,Post-condition free-text response,SITE2/P17,SITE2,162,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE2/P18/Questionnaire/Minimap,Post-condition free-text response,SITE2/P18,SITE2,31,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P19/Questionnaire/Minimap,Post-condition free-text response,SITE1/P19,SITE1,16,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P20/Questionnaire/Minimap,Post-condition free-text response,SITE1/P20,SITE1,69,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P21/Questionnaire/Minimap,Post-condition free-text response,SITE1/P21,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P22/Questionnaire/Minimap,Post-condition free-text response,SITE1/P22,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Minimap
+SITE1/P23/Questionnaire/Minimap,Post-condition free-text response,SITE1/P23,SITE1,97,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P01/Questionnaire/Minimap,Post-condition free-text response,SITE1/P01,SITE1,14,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P24/Questionnaire/Minimap,Post-condition free-text response,SITE1/P24,SITE1,1,FIELD_PRESENT,INCLUDED,Method=Minimap
+SITE1/P02/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P02,SITE1,23,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P03/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P03,SITE1,10,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P04/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P04,SITE1,43,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P01/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P01,SITE2,37,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P02/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P02,SITE2,12,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P03/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P03,SITE2,51,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P04/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P04,SITE2,8,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P05/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P05,SITE2,43,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P05/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P05,SITE1,17,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P06/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P06,SITE2,9,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P06/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P06,SITE1,15,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P07/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P07,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE2/P07/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P07,SITE2,8,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P08/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P08,SITE2,9,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P08/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P08,SITE1,13,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P09/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P09,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE2/P09/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P09,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P10/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P10,SITE1,25,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P10/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P10,SITE2,3,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P11/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P11,SITE1,6,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P12/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P12,SITE1,19,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P13/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P13,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P14/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P14,SITE1,55,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P15/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P15,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P16/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P16,SITE1,16,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P11/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P11,SITE2,27,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P12/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P12,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P17/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P17,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE2/P13/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P13,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE2/P14/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P14,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P18/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P18,SITE1,4,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P15/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P15,SITE2,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE2/P16/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P16,SITE2,12,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P17/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P17,SITE2,93,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE2/P18/Questionnaire/Tsunami,Post-condition free-text response,SITE2/P18,SITE2,53,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P19/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P19,SITE1,15,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P20/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P20,SITE1,66,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P21/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P21,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P22/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P22,SITE1,0,FIELD_PRESENT,NOT_CODED_NO_SUBSTANTIVE_CONTENT,Method=Tsunami
+SITE1/P23/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P23,SITE1,93,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P01/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P01,SITE1,9,FIELD_PRESENT,INCLUDED,Method=Tsunami
+SITE1/P24/Questionnaire/Tsunami,Post-condition free-text response,SITE1/P24,SITE1,1,FIELD_PRESENT,INCLUDED,Method=Tsunami

@@ -1,0 +1,31 @@
+CodeID,CodeName,Definition,Origin,RelatedRQ,RelatedQuantitativeOutcome,ParentCategory,FinalTheme
+C01,TRAVERSAL_EFFICIENCY,"Explicit speed, simplicity, directness, or fewer/more actions during traversal.",hybrid,RQ1,route time; teleport count; path efficiency,T1_SCALE_CONTEXT,T1_SCALE_CONTEXT
+C02,REPEATED_TELEPORT_COST,"Cumulative time, interaction, or reorientation cost from repeated short teleports/actions.",hybrid,RQ1,route time; teleport count,T1_SCALE_CONTEXT,T1_SCALE_CONTEXT
+C03,DISTANCE_DEPENDENT_SUITABILITY,Suitability changes explicitly between shorter and longer teleport distances.,hybrid,RQ1,precision by distance; route interaction,T1_SCALE_CONTEXT,T1_SCALE_CONTEXT
+C04,ENVIRONMENT_GEOMETRY_CONSTRAINT,"Terrain, buildings, interiors, or obstacles constrain route or feasibility.",hybrid,RQ1,method-by-route interaction,T1_SCALE_CONTEXT,T1_SCALE_CONTEXT
+C05,DESTINATION_OCCLUSION,An obstacle hides the landing location and weakens prediction.,hybrid,RQ1/RQ2,landing precision; route interaction,T1_SCALE_CONTEXT,T1_SCALE_CONTEXT
+C06,SPATIAL_ORIENTATION_SUPPORTED,"The method supports self-location, heading, destination awareness, or surrounding spatial layout.",hybrid,RQ2,spatial-awareness composite; continuity,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C07,SPATIAL_ORIENTATION_DISRUPTED,"The method degrades self-location, heading, destination awareness, or spatial relations.",hybrid,RQ2,spatial-awareness composite; continuity,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C08,TELEPORT_PATH_VISIBILITY,"An arc, line, or landing marker makes the mechanical teleport path or outcome visible.",hybrid,RQ1/RQ2,landing precision,T3_CONTROL_PRECISION_UI,T3_CONTROL_PRECISION_UI
+C09,DESTINATION_AREA_PREVIEW,The destination and its 3D surroundings are visible before teleportation.,hybrid,RQ2,spatial awareness; continuity,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C10,MAP_FRAME_ALIGNMENT,"Alignment or mismatch among map, cursor/avatar, and head/body orientation affects use.",hybrid,RQ2/RQ3,yaw/pitch; head rotation; workload,T2_SPATIAL_REPRESENTATION;T3_CONTROL_PRECISION_UI,T2_SPATIAL_REPRESENTATION;T3_CONTROL_PRECISION_UI
+C11,ENVIRONMENTAL_ATTENTION_REDUCED,The participant attends less to the 3D environment and relies mainly on an interface.,hybrid,RQ2,head rotation; latency; spatial awareness,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C12,ROUTE_LEARNING_AND_MEMORY,"The method affects learning, remembering, or reconstructing the travelled route.",inductive,RQ2,not directly measured,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C13,REORIENTATION_AND_TURNING_COST,"Additional turning, looking around, or re-establishing position/heading is required.",inductive,RQ2,latency; head rotation; yaw/pitch,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C14,WALKING_LIKE_INCREMENTAL_MOVEMENT,Small progressive steps and route following resemble real-world walking/navigation.,hybrid,RQ2,route time; spatial awareness,T2_SPATIAL_REPRESENTATION,T2_SPATIAL_REPRESENTATION
+C15,LANDING_PRECISION,The participant evaluates whether teleportation ends at the intended position.,hybrid,RQ1/RQ3,direct-hit and sequential landing error,T3_CONTROL_PRECISION_UI,T3_CONTROL_PRECISION_UI
+C16,DISTANCE_ESTIMATION,The method affects judgement of teleport length or target distance.,hybrid,RQ2,distance-awareness composite,T3_CONTROL_PRECISION_UI,T3_CONTROL_PRECISION_UI
+C17,DISTANCE_ESTIMATION_DIFFICULTY,The participant explicitly reports difficulty judging teleport length or target distance.,inductive,RQ2/RQ3,distance-awareness composite; workload,T3_CONTROL_PRECISION_UI,T3_CONTROL_PRECISION_UI
+C18,CONTROL_SENSITIVITY_AND_RELEASE,"Controller gain, sensitivity, or release changes the selected teleport point.",hybrid,RQ1/RQ3,landing error; corrective teleports,T3_CONTROL_PRECISION_UI,T3_CONTROL_PRECISION_UI
+C19,PHYSICAL_ERGONOMICS,"Arm/wrist posture, hand use, or controller coordination affects comfort or practicality.",hybrid,RQ3,RAW-TLX,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C20,PHYSICAL_DEMAND,The technique or corrective actions change bodily effort beyond local controller ergonomics.,inductive,RQ3,RAW-TLX,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C21,VISUAL_UI_PRESENTATION,"Size, position, visibility, overlap, or graphical intensity of an interface element affects use.",hybrid,RQ3,workload; usability,T3_CONTROL_PRECISION_UI,T3_CONTROL_PRECISION_UI
+C22,PRIOR_FAMILIARITY,Experience predating the study explains immediate understanding or preference.,hybrid,RQ3,usability; preference,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C23,LEARNING_AND_ACCLIMATIZATION,"Understanding, control, comfort, or performance changes with exposure or practice.",hybrid,RQ3,within-method latency and head-rotation trends,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C24,COGNITIVE_AND_INTERACTION_WORKLOAD,"Mental processing, decisions, context switching, or interaction steps alter workload.",hybrid,RQ3,RAW-TLX,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C25,IMMERSION_AND_PRESENCE,The method changes connection with or presence in the virtual environment.,hybrid,RQ2/RQ3,environmental continuity,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C26,ENJOYMENT_AND_AESTHETIC_APPEAL,"Explicit fun, pleasantness, interest, aesthetic appeal, or aversion.",hybrid,RQ3,fun ranking; preference,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C27,PERCEIVED_REALISM_AND_COHERENCE,"Explicitly perceived realism, fictionality, or coherence of the locomotion transformation.",author confirmation required,RQ3,usability; preference,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C28,CYBERSICKNESS_AND_BODILY_DISCOMFORT,"Explicit experienced, absent, anticipated, uncertain, or mixed nausea/dizziness/discomfort.",hybrid,RQ3,CSQ-VR,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
+C29,TASK_CONTEXT_FIT,"A method is explicitly linked to a task, environment, application, or target group.",deductive,RQ1/RQ3,route interaction; preference,T1_SCALE_CONTEXT,T1_SCALE_CONTEXT
+C30,HYBRID_CONFIGURATION,Multiple techniques or elements are explicitly proposed as one system or selectable configuration.,inductive,RQ1/RQ3,none directly,T4_ADOPTION_EXPERIENCE,T4_ADOPTION_EXPERIENCE
