@@ -176,8 +176,9 @@ def result_figures(*figures: tuple[str, str, str]) -> str:
     blocks = []
     for filename, alt, caption in figures:
         href = f"materials/quantitative/figures/{filename}"
+        compact_class = " result-figure--compact" if filename == "rq3_workload.svg" else ""
         blocks.append(
-            '<figure class="result-figure">'
+            f'<figure class="result-figure{compact_class}">'
             f'<a href="{href}" target="_blank" rel="noopener">'
             f'<img src="{href}" alt="{html.escape(alt)}" loading="lazy"></a>'
             f'<figcaption>{html.escape(caption)}</figcaption>'

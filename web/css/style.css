@@ -1038,15 +1038,18 @@ li > .dataset-preview {
 
 .result-figure-grid {
   max-width: var(--wide);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr));
-  gap: 1.2rem;
+  display: block;
   margin: 1.6rem 0 2.6rem;
 }
 
 .result-figure {
-  margin: 0;
+  margin: 0 0 1.8rem;
   min-width: 0;
+  width: 100%;
+}
+
+.result-figure--compact {
+  max-width: 50%;
 }
 
 .result-figure a {
@@ -1068,6 +1071,12 @@ li > .dataset-preview {
   font-size: 0.78rem;
   line-height: 1.45;
   margin-top: 0.45rem;
+}
+
+@media (max-width: 720px) {
+  .result-figure--compact {
+    max-width: 100%;
+  }
 }
 
 .dataset-preview[hidden] {
