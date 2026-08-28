@@ -27,6 +27,9 @@ tsunami_angle_params_*.npz
 saved_panels/
 distance_change_plots/
 lifting_*_coverage_*.pdf
+tsunami_sideview.png
+tsunami_sideview.mp4
+tsunami_sideview/
 
 # OS metadata
 .DS_Store

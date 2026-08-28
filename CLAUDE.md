@@ -12,10 +12,15 @@ Research prototype (matplotlib-based, no packaging, no tests, no linter config) 
 conda env create -f environment.yml   # first time; python 3.11 + numpy/scipy/matplotlib/trimesh/tk
 conda activate tsunami
 
+# or, without conda — the same four packages, tkinter coming from the system python
+python3 -m venv .venv && .venv/bin/pip install numpy scipy matplotlib trimesh
+source .venv/bin/activate             # .venv/ is gitignored
+
 python render_grid.py                        # main 4-panel interactive demo
 python study_sideview.py                     # 1-D side-view / visibility study
 python precompute_tsunami_angle_params.py    # regenerate the angle→parameter caches
 python plot_observer_distance_change.py      # figure scripts (see gotcha below)
+python animate_sideview.py                   # CLI side-view stills / animations (non-interactive)
 ```
 
 Every script is executed top-to-bottom at import time — there is no `if __name__ == "__main__"` guard in `render_grid.py` / `study_sideview.py`, and module-level code builds the figure and calls `plt.show()`. Importing them runs the GUI. An interactive matplotlib backend (Tk) is required.
@@ -118,6 +123,44 @@ the profile forward rather than casting a ray per entry, which the monotonicity 
 Uplift is driven by the transformed boundary angle α′_w rather than by `p`, so the four profiles are always
 compared at the same amount of spreading; `ProfileModel` precomputes the α′_w → p table per profile, as the
 "Determining the uplift parameter" section of the paper describes.
+
+### `animate_sideview.py` — CLI side-view demonstration
+
+The only non-interactive, non-GUI entry point: it renders the vertical viewing plane to PNG frames or to an
+mp4/gif through the `Agg` backend, and is driven entirely by `argparse` (`--help` is the reference). It exists
+to make animations of *how the transformation is built*, so each stage of the map is a separate control, and
+each control accepts either a number or an interval `a:b` that is ramped over `--steps` frames; any interval
+turns the run into a video.
+
+A scene point is a pair `(s, q)` — ground distance, height above ground — and reaches the uplifted world as
+
+```
+t   = (1 - a) * s + a * t(s)          # --arclength, a = 1 is keep_lengths=True
+dir = normalize((1 - w) * e_z + w * n(t))   # --normal, w = 1 is the rigid-height model
+P'  = g'(t) + q * dir
+```
+
+`--bending` runs 0 (flat) to 1 (`--max-angle`, 175°) and is mapped linearly onto α′_w, which is then inverted
+to `p` — so the four profiles are comparable at equal bending, as in `web/js/model.js`. The α′_w defining the
+bending always assumes full arc-length preservation, independently of where `--arclength` sits, or the two
+controls would interfere.
+
+The script uses the profile classes of `tsunami.py` but not their arc-length inversion: the base-class
+`s_to_xy` rebuilds a table on every call. `Construction` keeps two tables instead — the α′_w → p table built
+once, and the `t(s)` table rebuilt whenever `p` changes — mirroring `web/js/tsunami.js`. Two things that are
+easy to get wrong and are handled explicitly: scene polylines are densified before mapping (an unsubdivided
+edge becomes a chord across the bent ground), and axis limits are computed in a pre-pass over every frame so
+the view does not jitter.
+
+The cast ray is cast in the *uplifted* world, so `--ray` coordinates are read there; its dashed counterpart is
+its **pre-image**, obtained by inverting the map, not its image. `Construction.inverse_points` solves
+`P' - g'(t(s)) ∥ dir(t)` by scanning the tabulated ground for sign changes: past the focal surface a point has
+several pre-images and the nearest sheet is taken, and where none exists the result is NaN and the curve
+breaks. Only the stretch up to the first hit is drawn — beyond it the ray has left the world and its pre-image
+is far underground — and the pre-image of the hit is the ground distance the observer actually sees, which is
+what the paper's angle-to-distance table returns. Both curves are revealed by ray parameter, not by length, so
+they stay in lock-step. Verified: forward-then-inverse round-trips to ~1e-4 m on a 500 m world, and the hit
+pulls back onto q = 0, for every profile and every knob setting.
 
 ### `precompute_tsunami_angle_params.py` — cache layer
 
