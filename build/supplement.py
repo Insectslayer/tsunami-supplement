@@ -219,7 +219,7 @@ def interactive_precision_scatter(precision_csv: Path) -> str:
   <div class="interactive-chart" role="img"
        aria-label="Interactive target-centred landing positions for the 200 metre Precision Task target"></div>
   <div class="interactive-legend" aria-label="Toggle teleportation methods"></div>
-  <figcaption>Interactive counterpart: select a legend item to show or hide a teleportation method.</figcaption>
+  <figcaption>Target-centred landing positions for the 200 m Precision Task target; select a legend item to show or hide a teleportation method.</figcaption>
 </figure>
 </div>\n'''
 
@@ -291,9 +291,6 @@ def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
                 ("rq1_precision_timing.svg",
                  "Precision Task aiming and completion-time boxplots by distance and method.",
                  "Controlled Precision Task aim-to-teleport and completion-time distributions."),
-                ("rq1_precision_200m_scatter.svg",
-                 "Target-centred scatterplot of Precision Task landings at 200 metres.",
-                 "Target-centred landing positions for the 200 m Precision Task target."),
             ) + interactive_precision_scatter(source / "input" / "precision.csv")),
             ("rq2-spatial-awareness", result_figures(
                 ("rq1_city_direct_landing_error.svg",
