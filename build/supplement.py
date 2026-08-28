@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import html
+import csv
+import json
 import re
 import shutil
 import zipfile
@@ -192,10 +194,28 @@ def result_figures(*figures: tuple[str, str, str]) -> str:
     return '<div class="result-figure-grid">' + "".join(blocks) + "</div>\n"
 
 
-def interactive_precision_scatter() -> str:
-    return '''<div class="result-figure-grid">
+def interactive_precision_scatter(precision_csv: Path) -> str:
+    points = []
+    truthy = {"true", "1", "yes"}
+    with precision_csv.open(encoding="utf-8", newline="") as stream:
+        for row in csv.DictReader(stream):
+            if int(float(row["Distance"])) != 200:
+                continue
+            if row["RecommendedExclude"].strip().lower() in truthy:
+                continue
+            if row["RepeatedFailureTrialExclude"].strip().lower() in truthy:
+                continue
+            points.append({
+                "method": row["Method"].strip().lower(),
+                "x": round(float(row["LandingPos_x"]) + 68.3, 6),
+                "z": round(float(row["LandingPos_z"]), 6),
+            })
+    encoded_points = html.escape(
+        json.dumps(points, ensure_ascii=True, separators=(",", ":")), quote=True
+    )
+    return f'''<div class="result-figure-grid">
 <figure class="result-figure result-figure--compact interactive-scatter"
-        data-csv="materials/quantitative/input/precision.csv">
+        data-points="{encoded_points}">
   <div class="interactive-chart" role="img"
        aria-label="Interactive target-centred landing positions for the 200 metre Precision Task target"></div>
   <div class="interactive-legend" aria-label="Toggle teleportation methods"></div>
@@ -274,7 +294,7 @@ def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
                 ("rq1_precision_200m_scatter.svg",
                  "Target-centred scatterplot of Precision Task landings at 200 metres.",
                  "Target-centred landing positions for the 200 m Precision Task target."),
-            ) + interactive_precision_scatter()),
+            ) + interactive_precision_scatter(source / "input" / "precision.csv")),
             ("rq2-spatial-awareness", result_figures(
                 ("rq1_city_direct_landing_error.svg",
                  "City Race direct-checkpoint landing-error boxplots by distance band and method.",

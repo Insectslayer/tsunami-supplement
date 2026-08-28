@@ -126,22 +126,13 @@
     return element;
   }
 
-  async function buildInteractivePrecisionScatter(figure) {
-    const response = await fetch(figure.dataset.csv);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const rows = parseCsv(await response.text());
-    const header = rows.shift();
-    const index = Object.fromEntries(header.map((name, position) => [name, position]));
-    const isTrue = (value) => ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
-    const points = rows.filter((row) =>
-      Number(row[index.Distance]) === 200
-      && !isTrue(row[index.RecommendedExclude])
-      && !isTrue(row[index.RepeatedFailureTrialExclude])
-    ).map((row) => ({
-      method: String(row[index.Method]).toLowerCase(),
-      x: Number(row[index.LandingPos_x]) + 68.3,
-      z: Number(row[index.LandingPos_z]),
-    })).filter((point) => Number.isFinite(point.x) && Number.isFinite(point.z));
+  function buildInteractivePrecisionScatter(figure) {
+    const points = JSON.parse(figure.dataset.points || '[]').filter((point) =>
+      ['baseline', 'map', 'tsunami'].includes(point.method)
+      && Number.isFinite(point.x)
+      && Number.isFinite(point.z)
+    );
+    if (!points.length) throw new Error('no valid embedded points');
 
     const absValues = points.flatMap((point) => [Math.abs(point.x), Math.abs(point.z)]).sort((a, b) => a - b);
     const extent = Math.max(6, absValues[Math.floor((absValues.length - 1) * 0.99)] * 1.08);
@@ -216,11 +207,13 @@
   }
 
   function wireInteractiveFigures() {
-    document.querySelectorAll('.interactive-scatter[data-csv]').forEach((figure) => {
-      buildInteractivePrecisionScatter(figure).catch((error) => {
+    document.querySelectorAll('.interactive-scatter[data-points]').forEach((figure) => {
+      try {
+        buildInteractivePrecisionScatter(figure);
+      } catch (error) {
         figure.querySelector('.interactive-chart').innerHTML =
           `<p class="preview-error">Interactive chart unavailable (${error.message}).</p>`;
-      });
+      }
     });
   }
 
