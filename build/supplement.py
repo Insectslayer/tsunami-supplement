@@ -452,13 +452,19 @@ def build() -> None:
         (WEB / f"{kind}-results.html").write_text(output, encoding="utf-8")
 
     archive = downloads / "TSUNAMI_supplementary_materials.zip"
+    archive_exclusions = {
+        ("quantitative", Path("TSUNAMI_quantitative_figures.ipynb")),
+    }
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as bundle:
         for kind, source in sources.items():
             for path in sorted(source.rglob("*")):
                 if path.is_file() and not any(
                     part.startswith(".") for part in path.relative_to(source).parts
                 ):
-                    relative = Path(f"{kind}_supplement") / path.relative_to(source)
+                    source_relative = path.relative_to(source)
+                    if (kind, source_relative) in archive_exclusions:
+                        continue
+                    relative = Path(f"{kind}_supplement") / source_relative
                     bundle.write(path, relative.as_posix())
     print(f"Built result pages and {archive.relative_to(ROOT)}")
 
