@@ -884,30 +884,8 @@ td > .katex {
   text-align: left;
 }
 
-/* Reviewer-facing result and download pages reuse the paper typography. */
+/* Reviewer-facing result pages reuse the paper typography. */
 
-.download-banner {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.download-banner {
-  max-width: var(--measure);
-  margin: 0 0 2rem;
-  padding: 1rem 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.download-banner p {
-  margin: 0;
-  text-align: left;
-}
-
-.download-link,
 .file-link,
 .preview-button {
   color: var(--accent);
@@ -918,7 +896,6 @@ td > .katex {
   white-space: nowrap;
 }
 
-.download-link,
 .preview-button {
   border: 1px solid var(--border-strong);
   border-radius: 999px;
@@ -952,7 +929,6 @@ li > .context-file-actions {
 }
 
 .preview-button:hover,
-.download-link:hover,
 .file-link:hover {
   color: var(--text-primary);
 }
@@ -1101,13 +1077,6 @@ li > .dataset-preview {
   padding: 0;
   border: 0;
   background: transparent;
-}
-
-@media (max-width: 620px) {
-  .download-banner {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
 /* ------------------------------------------------------------------ *

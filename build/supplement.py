@@ -8,7 +8,6 @@ import csv
 import json
 import re
 import shutil
-import zipfile
 from pathlib import Path
 
 
@@ -399,10 +398,6 @@ def page(kind: str, title: str, lede: str, content: str) -> str:
 </header>
 <nav class="toc" id="toc" aria-label="Contents"></nav>
 <main class="paper">
-  <div class="download-banner">
-    <p><strong>Complete supplementary package</strong><br>Quantitative and qualitative materials in one archive.</p>
-    <a class="download-link" href="downloads/TSUNAMI_supplementary_materials.zip" download>Download ZIP</a>
-  </div>
   {content}
 </main>
 <footer class="page-footer"><p>TSUNAMI user study supplementary materials.</p></footer>
@@ -413,7 +408,6 @@ def page(kind: str, title: str, lede: str, content: str) -> str:
 
 def build() -> None:
     materials = WEB / "materials"
-    downloads = WEB / "downloads"
     if all(source.is_dir() for source in EXTERNAL_SOURCES.values()):
         if materials.exists():
             shutil.rmtree(materials)
@@ -428,8 +422,6 @@ def build() -> None:
         raise FileNotFoundError(
             "Neither the local source supplements nor the distributed web/materials copies are complete."
         )
-    downloads.mkdir(parents=True, exist_ok=True)
-
     sources = {kind: materials / kind for kind in EXTERNAL_SOURCES}
     for kind, source in sources.items():
         markdown = (source / "_README.md").read_text(encoding="utf-8")
@@ -448,22 +440,7 @@ def build() -> None:
         output = page(kind, title, lede, content)
         (WEB / f"{kind}-results.html").write_text(output, encoding="utf-8")
 
-    archive = downloads / "TSUNAMI_supplementary_materials.zip"
-    archive_exclusions = {
-        ("quantitative", Path("TSUNAMI_quantitative_figures.ipynb")),
-    }
-    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as bundle:
-        for kind, source in sources.items():
-            for path in sorted(source.rglob("*")):
-                if path.is_file() and not any(
-                    part.startswith(".") for part in path.relative_to(source).parts
-                ):
-                    source_relative = path.relative_to(source)
-                    if (kind, source_relative) in archive_exclusions:
-                        continue
-                    relative = Path(f"{kind}_supplement") / source_relative
-                    bundle.write(path, relative.as_posix())
-    print(f"Built result pages and {archive.relative_to(ROOT)}")
+    print("Built reviewer-facing result pages.")
 
 
 if __name__ == "__main__":
