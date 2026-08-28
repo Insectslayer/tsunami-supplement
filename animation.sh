@@ -1,0 +1,4 @@
+python animate_sideview.py --output tsunami_sideview/1_rise.mp4 --bending 0:0.3 --ray-visible 0 --normal 0 --arclength 0  --steps 180 --line-scale 3 --easing ease-in-out --scale 0.45 --center 250,150
+python animate_sideview.py --output tsunami_sideview/2_normals.mp4 --bending 0.3 --ray-visible 0 --normal 0:1 --arclength 0  --steps 180 --line-scale 3 --easing ease-in-out --scale 0.45 --center 250,150
+python animate_sideview.py --output tsunami_sideview/3_arclength.mp4 --bending 0.3 --ray-visible 0 --normal 1 --arclength 0:1  --steps 180 --line-scale 3 --easing ease-in-out --scale 0.45 --center 250,150
+python animate_sideview.py --output tsunami_sideview/4_ray.mp4 --bending 0.3 --ray-visible 0:1 --ray 0,50 305,120  --normal 1 --arclength 1  --steps 180 --line-scale 3 --easing ease-in-out --scale 0.45 --center 250,150
