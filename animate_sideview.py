@@ -100,7 +100,7 @@ import math
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable, NamedTuple, Sequence
 
 import numpy as np
 import matplotlib
@@ -128,6 +128,7 @@ DEFAULT_SIZE = (1920, 1080)
 DEFAULT_FPS = 60
 DEFAULT_STEPS = 120
 DEFAULT_DPI = 100
+DEFAULT_PADDING_PERCENT = 5.0  # of the matching output dimension
 DEFAULT_STEM = "tsunami_sideview"
 
 ARC_TABLE_N = 4001        # arc-length table resolution used per frame
@@ -1014,30 +1015,37 @@ def make_figure(options: argparse.Namespace, colors: dict):
     return figure, axes
 
 
-def fit_limits(axes, bounds, size, margin=0.06) -> None:
-    """Pad the data box and widen it to the output aspect, keeping scale equal."""
-    x_min, x_max, z_min, z_max = bounds
-    width = max(x_max - x_min, 1e-6)
-    height = max(z_max - z_min, 1e-6)
-    x_min -= margin * width
-    x_max += margin * width
-    z_min -= margin * height
-    z_max += margin * height
+def fit_limits(axes, bounds, size, padding) -> None:
+    """Fit the data box into the padded content area, keeping the scale equal.
 
-    aspect = size[0] / size[1]
-    width = x_max - x_min
-    height = z_max - z_min
-    if width / height < aspect:
-        extra = (height * aspect - width) / 2.0
+    ``padding`` is (top, right, bottom, left) in pixels. The data box is first
+    widened to the aspect of the content area -- the output minus the padding --
+    which fixes the number of data units per pixel; the padding is then added
+    back at that scale, so it comes out at exactly the requested pixel width on
+    every side.
+    """
+    x_min, x_max, z_min, z_max = bounds
+    top, right, bottom, left = padding
+    content_width = size[0] - left - right
+    content_height = size[1] - top - bottom
+    if content_width <= 0 or content_height <= 0:
+        raise SystemExit("--padding leaves no room for the drawing")
+
+    data_width = max(x_max - x_min, 1e-6)
+    data_height = max(z_max - z_min, 1e-6)
+    aspect = content_width / content_height
+    if data_width / data_height < aspect:
+        extra = (data_height * aspect - data_width) / 2.0
         x_min -= extra
         x_max += extra
     else:
-        extra = (width / aspect - height) / 2.0
+        extra = (data_width / aspect - data_height) / 2.0
         z_min -= extra
         z_max += extra
 
-    axes.set_xlim(x_min, x_max)
-    axes.set_ylim(z_min, z_max)
+    scale = (x_max - x_min) / content_width  # data units per pixel
+    axes.set_xlim(x_min - left * scale, x_max + right * scale)
+    axes.set_ylim(z_min - bottom * scale, z_max + top * scale)
 
 
 def render_frames(
@@ -1056,7 +1064,7 @@ def render_frames(
         axes.set_aspect("equal", adjustable="box")
         if not options.axes:
             axes.set_axis_off()
-        fit_limits(axes, bounds, options.size)
+        fit_limits(axes, bounds, options.size, options.padding_px)
         renderer.draw(axes, state)
         emit(index)
 
@@ -1129,6 +1137,59 @@ def parse_size(text: str) -> tuple[int, int]:
     if width < 16 or height < 16:
         raise argparse.ArgumentTypeError("--size: both dimensions must be at least 16")
     return width, height
+
+
+class Padding(NamedTuple):
+    """One padding value, in pixels or as a percentage of the output."""
+
+    value: float
+    percent: bool
+
+    def __repr__(self) -> str:  # what --help prints for the default
+        return f"{self.value:g}%" if self.percent else f"{self.value:g}px"
+
+
+def parse_padding(text: str) -> Padding:
+    text = text.strip()
+    percent = text.endswith("%")
+    number = text[:-1] if percent else text
+    try:
+        value = float(number)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"--padding: not a number: {text!r}") from None
+    if value < 0.0:
+        raise argparse.ArgumentTypeError(f"--padding: must not be negative: {text!r}")
+    return Padding(value, percent)
+
+
+def padding_pixels(
+    values: Sequence[Padding], size: tuple[int, int]
+) -> tuple[float, float, float, float]:
+    """Expand CSS shorthand to (top, right, bottom, left) in pixels.
+
+    A percentage is taken of the output dimension it sits on -- the height for
+    top and bottom, the width for left and right -- rather than of the width
+    throughout as CSS does, so that a single percentage pads a portrait frame
+    evenly instead of leaving thin bands top and bottom.
+    """
+    count = len(values)
+    if count == 1:
+        ordered = values * 4
+    elif count == 2:
+        ordered = [values[0], values[1], values[0], values[1]]
+    elif count == 3:
+        ordered = [values[0], values[1], values[2], values[1]]
+    elif count == 4:
+        ordered = list(values)
+    else:
+        raise argparse.ArgumentTypeError("--padding: expected 1 to 4 values")
+
+    width, height = size
+    against = (height, width, height, width)
+    return tuple(
+        value * span / 100.0 if percent else value
+        for (value, percent), span in zip(ordered, against)
+    )
 
 
 def parse_point(text: str) -> np.ndarray:
@@ -1211,6 +1272,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     output.add_argument("--fps", type=int, default=DEFAULT_FPS, help="video frame rate")
     output.add_argument("--steps", type=int, default=DEFAULT_STEPS, help="number of animation steps")
+    output.add_argument(
+        "--padding", type=parse_padding, nargs="+", metavar="V",
+        default=[Padding(DEFAULT_PADDING_PERCENT, True)],
+        help="space between the drawing and the image border, in pixels or as a "
+             "percentage with '%%'. One to four values in CSS order: all; "
+             "vertical horizontal; top horizontal bottom; top right bottom left",
+    )
     output.add_argument("--dpi", type=int, default=DEFAULT_DPI, help="figure dpi (affects line and text scale)")
     output.add_argument("--crf", type=int, default=18, help="x264 quality, lower is better")
 
@@ -1266,6 +1334,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         options.format = "video" if animated else "image"
     if options.steps < 1:
         raise SystemExit("--steps must be at least 1")
+    try:
+        options.padding_px = padding_pixels(options.padding, options.size)
+    except argparse.ArgumentTypeError as error:
+        parser.error(str(error))
+    top, right, bottom, left = options.padding_px
+    if left + right >= options.size[0] or top + bottom >= options.size[1]:
+        parser.error(
+            f"--padding: {left + right:.0f}x{top + bottom:.0f} px leaves no room in a "
+            f"{options.size[0]}x{options.size[1]} image"
+        )
     # A video of constant controls is still a video: the frames simply repeat.
     # A still of constant controls is one file, not --steps copies of it.
     steps = options.steps if (animated or options.format == "video") else 1
