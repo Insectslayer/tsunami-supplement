@@ -156,7 +156,6 @@ PALETTES = {
         "ray": "#d62728",
         "ray_flat": "#9467bd",
         "hit": "#ff7f0e",
-        "observer": "#d62728",
         "readout": "#303030",
     },
     "dark": {
@@ -169,7 +168,6 @@ PALETTES = {
         "ray": "#ff6b6b",
         "ray_flat": "#c792ea",
         "hit": "#ffb454",
-        "observer": "#ff6b6b",
         "readout": "#c9d1d9",
     },
     "paper": {
@@ -182,7 +180,6 @@ PALETTES = {
         "ray": "#000000",
         "ray_flat": "#777777",
         "hit": "#000000",
-        "observer": "#000000",
         "readout": "#000000",
     },
 }
@@ -724,7 +721,6 @@ class SideViewRenderer:
         self.o = options
         self.colors = colors
         self.scene = options.scene_polylines
-        self.observer = options.observer_point
         self.ray_start = options.ray[0]
         self.ray_end = options.ray[1]
         self.ray_direction = self.ray_end - self.ray_start
@@ -793,7 +789,6 @@ class SideViewRenderer:
         self.c.set_state(*saved)
 
         add(self.ray_points())
-        add(np.array([[0.0, self.c.h]]))
         if not self.o.hide_flat:
             for polyline in self.flat_shapes():
                 add(polyline)
@@ -806,7 +801,6 @@ class SideViewRenderer:
     # -- drawing ------------------------------------------------------------
 
     def draw(self, ax, state: FrameState) -> None:
-        colors = self.colors
         self.apply(state)
         bent = state.bending > 1e-9
 
@@ -818,11 +812,6 @@ class SideViewRenderer:
         self._draw_scene(ax)
         self._draw_ground(ax)
         self._draw_rays(ax, state)
-        ax.plot(
-            [self.observer[0]], [self.observer[1]],
-            marker="*", markersize=self.o.marker_scale * 14.0,
-            linestyle="None", color=colors["observer"], zorder=8,
-        )
         if self.o.readout:
             self._draw_readout(ax, state)
 
@@ -1315,7 +1304,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             file=sys.stderr,
         )
 
-    options.observer_point = observer
     if options.ray is None:
         options.ray = [observer.copy(), np.array([options.world_radius, 0.0])]
     try:
