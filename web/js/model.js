@@ -460,7 +460,7 @@
       const { dx, dy, pixelD, width, height } = this.geometry();
       const rx = new Float64Array(width * height);
       const ry = new Float64Array(width * height);
-      const azRad = (this.azimuth * Math.PI) / 180;
+      const azRad = (-this.azimuth * Math.PI) / 180;
       const cosAz = Math.cos(azRad);
       const sinAz = Math.sin(azRad);
 
