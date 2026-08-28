@@ -120,7 +120,7 @@ WORLD_SIZE = 500.0        # d_w, world radius in meters
 OBSERVER_H = 100.0        # h, observer elevation in meters
 TILE_SZ = 25.0            # spacing of the normal hairs of --show-normals
 MAX_ANGLE = 175.0         # alpha'_w reached at bending 1, in degrees
-WORLD_HEIGHT = 50.0       # h_w, only used to scale the sample scene
+WORLD_HEIGHT = 80.0      # h_w, only used to scale the sample scene
 
 DEFAULT_SIZE = (1920, 1080)
 DEFAULT_FPS = 60
@@ -247,8 +247,8 @@ def sample_scene(world_radius: float, world_height: float = WORLD_HEIGHT) -> lis
 
     s = world_radius * 0.06
     while s < world_radius * 0.97:
-        width = float(rng.uniform(0.020, 0.055)) * world_radius
-        gap = float(rng.uniform(0.012, 0.040)) * world_radius
+        width = float(rng.uniform(0.040, 0.100)) * world_radius
+        gap = float(rng.uniform(0.025, 0.080)) * world_radius
         # Distant buildings are drawn taller so that the uplift has something
         # to show at the far end of the world.
         far = s / world_radius
@@ -813,10 +813,10 @@ class SideViewRenderer:
         if not self.o.hide_flat and bent:
             self._draw_flat_reference(ax)
 
-        self._draw_ground(ax)
         if self.o.show_normals:
             self._draw_normals(ax)
         self._draw_scene(ax)
+        self._draw_ground(ax)
         self._draw_rays(ax, state)
         ax.plot(
             [self.observer[0]], [self.observer[1]],
@@ -844,7 +844,7 @@ class SideViewRenderer:
         ax.plot(
             gx, gz,
             color=self.colors["ground"], linewidth=self.o.line_scale * 3.0,
-            solid_capstyle="round", zorder=3,
+            solid_capstyle="round", zorder=5,
         )
 
     def _draw_normals(self, ax) -> None:
@@ -870,7 +870,7 @@ class SideViewRenderer:
         for mapped in self.scene_shapes():
             ax.plot(
                 mapped[:, 0], mapped[:, 1],
-                color=colors["scene_edge"], linewidth=self.o.line_scale * 1.4, zorder=5,
+                color=colors["scene_edge"], linewidth=self.o.line_scale * 1.4, zorder=3,
             )
 
     def _draw_rays(self, ax, state: FrameState) -> None:
@@ -1247,7 +1247,7 @@ def build_parser() -> argparse.ArgumentParser:
     style.add_argument("--axes", action="store_true", help="draw the axis frame and ticks")
     style.add_argument("--show-normals", action="store_true", help="draw profile normals along the ground")
     style.add_argument("--normal-length", type=float, default=None, help="length of the normal hairs in meters")
-    style.add_argument("--line-scale", type=float, default=1.0, help="multiplier for all line widths")
+    style.add_argument("--line-scale", type=float, default=2.0, help="multiplier for all line widths")
     style.add_argument("--marker-scale", type=float, default=1.0, help="multiplier for all marker sizes")
     style.add_argument("--font-size", type=float, default=13.0, help="readout font size")
 
