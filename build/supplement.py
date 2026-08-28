@@ -387,7 +387,7 @@ def page(kind: str, title: str, lede: str, content: str) -> str:
 </head>
 <body class="results-page">
 <nav class="site-nav" aria-label="Supplement sections">
-  <a href="index.html"{current['appendix']}>Interactive appendix</a>
+  <a href="index.html"{current['appendix']}>Tsunami transformations</a>
   <a href="quantitative-results.html"{current['quantitative']}>Quantitative results</a>
   <a href="qualitative-results.html"{current['qualitative']}>Qualitative results</a>
 </nav>
