@@ -1,6 +1,6 @@
 /*
  * app.js — wires the page together: the global control bar that every figure
- * listens to, the contents rail, the theme toggle, and figure mounting.
+ * listens to, the contents rail, and figure mounting.
  */
 (function (global) {
   'use strict';
@@ -105,7 +105,7 @@
     inner.appendChild(upliftGroup);
     inner.appendChild(pReadout);
 
-    // reset + theme
+    // reset
     const actions = element('div', 'control-group');
 
     const reset = element('button', 'icon-button');
@@ -120,21 +120,6 @@
       syncReadout();
     });
     actions.appendChild(reset);
-
-    const theme = element('button', 'icon-button');
-    theme.type = 'button';
-    theme.title = 'Switch between light and dark';
-    theme.setAttribute('aria-label', 'Switch between light and dark');
-    theme.innerHTML =
-      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
-    theme.addEventListener('click', () => {
-      const root = document.documentElement;
-      const prefersDark = global.matchMedia('(prefers-color-scheme: dark)').matches;
-      const current = root.getAttribute('data-theme') || (prefersDark ? 'dark' : 'light');
-      root.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-      global.TsunamiModel.redrawAll();
-    });
-    actions.appendChild(theme);
 
     inner.appendChild(actions);
     bar.appendChild(inner);
@@ -235,10 +220,6 @@
     };
     if (global.requestIdleCallback) global.requestIdleCallback(() => warm(0), { timeout: 3000 });
     else setTimeout(() => warm(0), 600);
-
-    global.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      global.TsunamiModel.redrawAll();
-    });
 
     document.body.dataset.ready = 'true';
   }

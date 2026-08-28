@@ -149,58 +149,6 @@ const only = process.argv[2];
     `profile switch: ${timings.profiles.map((p) => `${p.name} ${p.ms}ms`).join(', ')}`
   );
 
-  // Dark mode: flip the theme and confirm every canvas still renders.
-  await page.evaluate(() => {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    globalThis.TsunamiModel.redrawAll();
-  });
-  await new Promise((resolve) => setTimeout(resolve, 900));
-  const darkReport = await page.evaluate(() => {
-    const results = [];
-    document.querySelectorAll('.fig-slot[data-figure]').forEach((slot) => {
-      let blank = 0;
-      slot.querySelectorAll('canvas').forEach((canvas) => {
-        const data = canvas
-          .getContext('2d')
-          .getImageData(0, 0, canvas.width, canvas.height).data;
-        const first = [data[0], data[1], data[2]];
-        let varied = false;
-        for (let i = 4; i < data.length; i += 4 * 97) {
-          if (
-            Math.abs(data[i] - first[0]) > 3 ||
-            Math.abs(data[i + 1] - first[1]) > 3 ||
-            Math.abs(data[i + 2] - first[2]) > 3
-          ) {
-            varied = true;
-            break;
-          }
-        }
-        if (!varied) blank += 1;
-      });
-      if (blank) results.push(`${slot.dataset.figure}: ${blank} blank`);
-    });
-    return results;
-  });
-  console.log(
-    `
-dark mode: ${darkReport.length ? darkReport.join(', ') : 'all canvases render'}`
-  );
-  if (process.env.SHOT_DARK) {
-    const darkSlots = await page.$$('.fig-slot[data-figure]');
-    for (const slot of darkSlots) {
-      const name = await slot.evaluate((node) => node.dataset.figure);
-      if (only && name !== only) continue;
-      await slot.scrollIntoView();
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      await slot.screenshot({ path: path.join(SHOTS, `dark-${name}.png`) });
-    }
-  }
-  await page.evaluate(() => {
-    document.documentElement.setAttribute('data-theme', 'light');
-    globalThis.TsunamiModel.redrawAll();
-  });
-  await new Promise((resolve) => setTimeout(resolve, 700));
-
   // Screenshots
   const slots = await page.$$('.fig-slot[data-figure]');
   for (const slot of slots) {

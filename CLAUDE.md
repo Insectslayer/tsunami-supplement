@@ -63,7 +63,7 @@ after changing anything under `web/`.
 node build/convert.js    # paper/main.md appendix -> web/content.html (KaTeX prerendered)
 node build/assemble.js   # template + content + assets -> web/index.html and web/appendix.html
 node build/verify.js     # JS profile maths vs build/reference.json
-node build/check.js      # headless Chrome: renders, console errors, layout, both themes
+node build/check.js      # headless Chrome: renders, console errors, layout
 ```
 
 Where a figure belongs is decided in the markdown: a line reading `@@figure:<name>@@` becomes the slot that
