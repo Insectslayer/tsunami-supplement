@@ -161,9 +161,38 @@ def append_after_description(content: str, heading_id: str, addition: str) -> st
     return content[:paragraph_end] + addition + content[paragraph_end:]
 
 
+def insert_before_heading(content: str, heading_id: str, addition: str) -> str:
+    marker = f'id="{heading_id}"'
+    marker_start = content.find(marker)
+    if marker_start < 0:
+        raise ValueError(f"Expected result heading not found: {heading_id}")
+    heading_start = content.rfind("<h", 0, marker_start)
+    if heading_start < 0:
+        raise ValueError(f"Cannot locate heading start for: {heading_id}")
+    return content[:heading_start] + addition + content[heading_start:]
+
+
+def result_figures(*figures: tuple[str, str, str]) -> str:
+    blocks = []
+    for filename, alt, caption in figures:
+        href = f"materials/quantitative/figures/{filename}"
+        blocks.append(
+            '<figure class="result-figure">'
+            f'<a href="{href}" target="_blank" rel="noopener">'
+            f'<img src="{href}" alt="{html.escape(alt)}" loading="lazy"></a>'
+            f'<figcaption>{html.escape(caption)}</figcaption>'
+            '</figure>'
+        )
+    return '<div class="result-figure-grid">' + "".join(blocks) + "</div>\n"
+
+
 def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
     if kind == "quantitative":
-        for filename in ("Tsunami_quantitative_analysis.ipynb", "requirements.txt"):
+        for filename in (
+            "Tsunami_quantitative_analysis.ipynb",
+            "TSUNAMI_quantitative_figures.ipynb",
+            "requirements.txt",
+        ):
             content = append_to_list_item(
                 content,
                 f"<code>{filename}</code>",
@@ -205,6 +234,77 @@ def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
             "detailed-questionnaire-wording",
             file_controls(kind, source, source / "study_questionnaire.md"),
         )
+
+        figure_sections = (
+            ("interaction-effort-and-path-efficiency", result_figures(
+                ("rq1_city_race_completion_times.svg",
+                 "Boxplots of net and total City Race completion time by route and method.",
+                 "City Race net and total completion-time distributions by route and locomotion method."),
+            )),
+            ("controlled-landing-precision-and-interaction-time", result_figures(
+                ("rq1_interaction_efficiency.svg",
+                 "Boxplots of teleport counts and path efficiency by method.",
+                 "Participant-level interaction effort and path-efficiency distributions."),
+            )),
+            ("city-race-landing-accuracy", result_figures(
+                ("rq1_precision_landing_error.svg",
+                 "Precision Task landing-error boxplots for 50, 100, and 200 metre targets.",
+                 "Controlled Precision Task landing error after failed-manipulation exclusions."),
+                ("rq1_precision_timing.svg",
+                 "Precision Task aiming and completion-time boxplots by distance and method.",
+                 "Controlled Precision Task aim-to-teleport and completion-time distributions."),
+                ("rq1_precision_200m_scatter.svg",
+                 "Target-centred scatterplot of Precision Task landings at 200 metres.",
+                 "Target-centred landing positions for the 200 m Precision Task target."),
+            )),
+            ("rq2-spatial-awareness", result_figures(
+                ("rq1_city_direct_landing_error.svg",
+                 "City Race direct-checkpoint landing-error boxplots by distance band and method.",
+                 "Direct successful checkpoint landing error in the two mutually exclusive distance bands."),
+                ("rq1_city_direct_landing_scatter.svg",
+                 "Target-centred City Race direct-checkpoint landing scatterplots.",
+                 "Target-centred positions for successful direct long-range checkpoint landings."),
+                ("rq1_checkpoint_approach.svg",
+                 "Checkpoint-approach first landing error and correction-count boxplots.",
+                 "First-landing error and corrective teleport counts across complete checkpoint approaches."),
+                ("rq1_checkpoint_approach_scatter.svg",
+                 "Target-centred first-landing scatterplots for complete checkpoint approaches.",
+                 "Target-centred first landings before any corrective teleport in complete checkpoint approaches."),
+            )),
+            ("h2-2-subjective-spatial-awareness", result_figures(
+                ("rq2_reorientation_awareness.svg",
+                 "Boxplots of behavioral re-engagement and subjective spatial-awareness outcomes.",
+                 "Landing-to-confirmation behavior and subjective spatial-awareness outcomes for Tsunami and Minimap."),
+            )),
+            ("rq3-usability-trade-offs", result_figures(
+                ("rq2_spatial_rating_distributions.svg",
+                 "Diverging stacked bars for the spatial-awareness questionnaire items.",
+                 "Response distributions for the spatial-awareness and environmental-continuity items."),
+            )),
+            ("h3-2-perceived-workload", result_figures(
+                ("rq3_csq_change.svg",
+                 "Boxplot of within-session CSQ-VR change by locomotion method.",
+                 "Within-session cybersickness change associated with each method."),
+                ("rq3_csq_timecourse.svg",
+                 "Individual trajectories and boxplots of CSQ-VR total scores over the experiment.",
+                 "Descriptive CSQ-VR total-score development across the four measurement occasions."),
+            )),
+            ("usability-distance-awareness-and-preferences", result_figures(
+                ("rq3_workload.svg",
+                 "Boxplot of RAW-TLX workload by method.",
+                 "Participant-level perceived-workload distributions."),
+            )),
+            ("statistical-diagnostics-and-sensitivity-analyses", result_figures(
+                ("rq3_usability_rating_distributions.svg",
+                 "Diverging stacked bars for usability and distance-awareness questionnaire items.",
+                 "Response distributions for distance awareness, ease of learning, and intuitive use."),
+                ("rq3_preference_rankings.svg",
+                 "Stacked bars of first, second, and third place rankings by question and method.",
+                 "Overall preference, comfort, intuitiveness, and fun ranking distributions."),
+            )),
+        )
+        for next_heading, figures in figure_sections:
+            content = insert_before_heading(content, next_heading, figures)
         return content
 
     for filename in (

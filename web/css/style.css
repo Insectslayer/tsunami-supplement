@@ -1036,6 +1036,40 @@ li > .dataset-preview {
   margin: 0.5rem 0 0.8rem;
 }
 
+.result-figure-grid {
+  max-width: var(--wide);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr));
+  gap: 1.2rem;
+  margin: 1.6rem 0 2.6rem;
+}
+
+.result-figure {
+  margin: 0;
+  min-width: 0;
+}
+
+.result-figure a {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-raised);
+}
+
+.result-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.result-figure figcaption {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin-top: 0.45rem;
+}
+
 .dataset-preview[hidden] {
   display: none;
 }
