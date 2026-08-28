@@ -201,6 +201,20 @@ def counterbalancing_table(source: Path) -> str:
     )
 
 
+def study_procedure() -> str:
+    """Chronological factual account of the procedure used in the study."""
+    return '''<h3 id="study-procedure">Study procedure</h3>
+<p>After providing informed consent, participants completed the demographic questionnaire, the Santa Barbara Sense of Direction Scale (SBSOD), and the initial CSQ-VR assessment.</p>
+<p>Each participant then completed three experimental blocks, one for each locomotion method. Method order was counterbalanced. Every block followed the same sequence:</p>
+<ol>
+<li><strong>Self-paced tutorial.</strong> An experimenter introduced the method using a standardized instruction script. Participants practised in a separate non-experimental environment for as long as they considered necessary.</li>
+<li><strong>Precision Task.</strong> Participants completed nine single-teleport trials: three trials at each target distance of 50, 100, and 200 m. Targets appeared sequentially, and participants returned to the starting position after every trial.</li>
+<li><strong>Navigation Task.</strong> Participants completed Routes A, B, and C with the current method. Each route contained seven checkpoints. Reaching a checkpoint displayed a progress banner, which the participant confirmed before the next checkpoint became available.</li>
+<li><strong>Post-condition questionnaires.</strong> After leaving VR, participants completed RAW-TLX, CSQ-VR, and the method-specific spatial-awareness and usability questions. Participants could sit and rest during this part of the block.</li>
+</ol>
+<p>After all three blocks, participants ranked the methods by overall preference for long-range navigation, comfort, perceived intuitiveness, and fun. They then completed the semi-structured interview. An experimenter remained present throughout the session; task order was fixed, while method order and the assignment of Routes A–C to positions within each block followed the counterbalancing scheme below.</p>'''
+
+
 def file_controls(
     kind: str,
     source: Path,
@@ -550,7 +564,9 @@ def build() -> None:
         content = add_contextual_downloads(kind, source, markdown_to_html(markdown))
         if kind == "quantitative":
             content = insert_before_heading(
-                content, "data-conventions", counterbalancing_table(source)
+                content,
+                "data-conventions",
+                study_procedure() + counterbalancing_table(source),
             )
         output = page(kind, title, lede, content)
         (WEB / f"{kind}-results.html").write_text(output, encoding="utf-8")

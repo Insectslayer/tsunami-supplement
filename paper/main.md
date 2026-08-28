@@ -1193,6 +1193,50 @@ depends on whether preservation of object height or preservation of a
 globally valid non-intersecting transformation is considered more
 important.
 
+## Inverse parabolic transformation {#sec:inverse_parabolic}
+
+For interaction with a transformed scene, a selected point must be
+mapped back to the flat world. Consider a transformed point
+$P'=(x_{P'},z_{P'})$ in a radial cross-section and its corresponding
+point $Q'=(u_{Q'},a u_{Q'}^2)$ on the parabolic zero plane, where $a>0$
+is the parabolic uplift parameter. Requiring $P'-Q'$ to lie along the
+normal of the parabola gives
+$$2a^2u_{Q'}^3+(1-2az_{P'})u_{Q'}-x_{P'}=0.$$
+
+Dividing by $2a^2$ yields the depressed cubic
+$$u_{Q'}^3+b u_{Q'}+c=0,$$
+where
+$$b=\frac{1-2az_{P'}}{2a^2},\qquad
+c=-\frac{x_{P'}}{2a^2}.$$
+Its discriminant is
+$$\Delta=\left(\frac{c}{2}\right)^2+
+\left(\frac{b}{3}\right)^3
+=\frac{x_{P'}^2}{16a^4}+
+\frac{(1-2az_{P'})^3}{216a^6}.$$
+
+For $\Delta\geq0$, Cardano's formula gives the real solution
+$$u_{Q'}=
+\sqrt[3]{\frac{x_{P'}}{4a^2}+\sqrt{\Delta}}+
+\sqrt[3]{\frac{x_{P'}}{4a^2}-\sqrt{\Delta}},$$
+where $\sqrt[3]{\cdot}$ denotes the real cube root.
+
+When $\Delta<0$, the cubic has three real algebraic roots. To avoid
+complex intermediate values, they can be evaluated as
+$$u_k=2\sqrt{-\frac{b}{3}}
+\cos\left[
+\frac{1}{3}\arccos\left(
+\frac{3c}{2b}\sqrt{-\frac{3}{b}}
+\right)-\frac{2\pi k}{3}
+\right],\qquad k\in\{0,1,2\}.$$
+Among the algebraic roots, we retain the real non-negative solution in
+the admissible geometric domain that satisfies the original cubic. The
+candidate is substituted back into the cubic as a residual check. The
+original radial ground coordinate is then recovered from the arc length
+of the parabolic profile up to $u_{Q'}$; the signed normal distance
+$\lVert P'-Q'\rVert$ recovers the coordinate above or below the zero
+plane. In three dimensions, the inverse is evaluated in the radial
+cross-section and the original azimuth is restored.
+
 ## Visualisation of height constraints
 
 @@figure:curvature-band@@
