@@ -152,8 +152,10 @@ The script uses the profile classes of `tsunami.py` but not their arc-length inv
 `s_to_xy` rebuilds a table on every call. `Construction` keeps two tables instead — the α′_w → p table built
 once, and the `t(s)` table rebuilt whenever `p` changes — mirroring `web/js/tsunami.js`. Two things that are
 easy to get wrong and are handled explicitly: scene polylines are densified before mapping (an unsubdivided
-edge becomes a chord across the bent ground), and axis limits are computed in a pre-pass over every frame so
-the view does not jitter.
+edge becomes a chord across the bent ground), and axis limits are computed once in a pre-pass rather than per
+frame, so the view does not jitter. That pre-pass covers every frame by default, which shrinks the drawing
+until the tallest frame fits; `--fit first` sizes it to the opening frame instead and `--scale` pins the meters
+per pixel outright, both letting later frames grow out of the image, with `--center` to aim them.
 
 The cast ray is cast in the *uplifted* world, so `--ray` coordinates are read there; its dashed counterpart is
 its **pre-image**, obtained by inverting the map, not its image. `Construction.inverse_points` solves

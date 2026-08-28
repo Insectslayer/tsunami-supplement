@@ -88,6 +88,10 @@ Examples
     python animate_sideview.py --easing ease-in-out --bending 0:1 \
         --ray-visible 0:1:linear
 
+    # keep the flat world at full size and let the bent world leave the frame
+    python animate_sideview.py --fit first
+    python animate_sideview.py --scale 0.6 --center 250,150
+
     # own scene, own colours, parameter readout visible
     python animate_sideview.py --scene city.csv --palette dark \
         --color ray=#ffcc00 --readout
@@ -1032,14 +1036,16 @@ def make_figure(options: argparse.Namespace, colors: dict):
     return figure, axes
 
 
-def fit_limits(axes, bounds, size, padding) -> None:
-    """Fit the data box into the padded content area, keeping the scale equal.
+def fit_limits(axes, bounds, size, padding, scale=None, center=None) -> None:
+    """Place the data box in the padded content area, keeping the scale equal.
 
-    ``padding`` is (top, right, bottom, left) in pixels. The data box is first
-    widened to the aspect of the content area -- the output minus the padding --
-    which fixes the number of data units per pixel; the padding is then added
-    back at that scale, so it comes out at exactly the requested pixel width on
-    every side.
+    ``padding`` is (top, right, bottom, left) in pixels. Without ``scale`` the
+    data box is widened to the aspect of the content area -- the output minus
+    the padding -- which is what fixes the number of meters per pixel; with a
+    ``scale`` given, that number is fixed instead and the content area covers
+    exactly as much ground as it holds, centred on the box. Either way the
+    padding is added at that scale, so it comes out at exactly the requested
+    pixel width on every side.
     """
     x_min, x_max, z_min, z_max = bounds
     top, right, bottom, left = padding
@@ -1048,19 +1054,30 @@ def fit_limits(axes, bounds, size, padding) -> None:
     if content_width <= 0 or content_height <= 0:
         raise SystemExit("--padding leaves no room for the drawing")
 
-    data_width = max(x_max - x_min, 1e-6)
-    data_height = max(z_max - z_min, 1e-6)
-    aspect = content_width / content_height
-    if data_width / data_height < aspect:
-        extra = (data_height * aspect - data_width) / 2.0
-        x_min -= extra
-        x_max += extra
-    else:
-        extra = (data_width / aspect - data_height) / 2.0
-        z_min -= extra
-        z_max += extra
+    if scale is None:
+        # Widen the shorter side until the box has the aspect of the content
+        # area; that is what decides the meters per pixel.
+        data_width = max(x_max - x_min, 1e-6)
+        data_height = max(z_max - z_min, 1e-6)
+        aspect = content_width / content_height
+        if data_width / data_height < aspect:
+            extra = (data_height * aspect - data_width) / 2.0
+            x_min -= extra
+            x_max += extra
+        else:
+            extra = (data_width / aspect - data_height) / 2.0
+            z_min -= extra
+            z_max += extra
+        scale = (x_max - x_min) / content_width  # meters per pixel
 
-    scale = (x_max - x_min) / content_width  # data units per pixel
+    center_x, center_z = (
+        center if center is not None else (0.5 * (x_min + x_max), 0.5 * (z_min + z_max))
+    )
+    half_width = 0.5 * scale * content_width
+    half_height = 0.5 * scale * content_height
+    x_min, x_max = center_x - half_width, center_x + half_width
+    z_min, z_max = center_z - half_height, center_z + half_height
+
     axes.set_xlim(x_min - left * scale, x_max + right * scale)
     axes.set_ylim(z_min - bottom * scale, z_max + top * scale)
 
@@ -1081,7 +1098,9 @@ def render_frames(
         axes.set_aspect("equal", adjustable="box")
         if not options.axes:
             axes.set_axis_off()
-        fit_limits(axes, bounds, options.size, options.padding_px)
+        fit_limits(
+            axes, bounds, options.size, options.padding_px, options.scale, options.center
+        )
         renderer.draw(axes, state)
         emit(index)
 
@@ -1302,6 +1321,23 @@ def build_parser() -> argparse.ArgumentParser:
     output.add_argument("--fps", type=int, default=DEFAULT_FPS, help="video frame rate")
     output.add_argument("--steps", type=int, default=DEFAULT_STEPS, help="number of animation steps")
     output.add_argument(
+        "--fit", choices=("all", "first"), default="all",
+        help="which frames the view is sized to. 'all' shrinks the drawing until "
+             "every frame fits; 'first' sizes it to the first frame only and lets "
+             "later frames grow out of the image",
+    )
+    output.add_argument(
+        "--scale", type=float, default=None, metavar="M_PER_PX",
+        help="fix the view at this many meters per pixel instead of sizing it to "
+             "the frames, so the scene keeps one on-screen size and may run past "
+             "the border",
+    )
+    output.add_argument(
+        "--center", type=parse_point, default=None, metavar="X,Y",
+        help="point the view is centred on, in meters (default: the middle of "
+             "the --fit frames). Mostly useful for aiming a fixed --scale",
+    )
+    output.add_argument(
         "--padding", type=parse_padding, nargs="+", metavar="V",
         default=[Padding(DEFAULT_PADDING_PERCENT, True)],
         help="space between the drawing and the image border, in pixels or as a "
@@ -1427,7 +1463,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     renderer = SideViewRenderer(construction, options, colors)
 
     figure, axes = make_figure(options, colors)
-    bounds = renderer.bounds(states)
+    if options.scale is not None and options.scale <= 0.0:
+        parser.error("--scale must be positive")
+    # 'first' sizes and centres the view on the opening frame; the rest are then
+    # free to grow out of the image, which is the point of fixing the size.
+    bounds = renderer.bounds(states if options.fit == "all" else states[:1])
 
     if options.format == "video":
         target = write_video(renderer, states, options, colors, figure, axes, bounds)
