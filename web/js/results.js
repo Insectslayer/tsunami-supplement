@@ -158,6 +158,31 @@
       fill: 'none', stroke: '#777', 'stroke-width': 1
     }));
 
+    [-1, -0.5, 0, 0.5, 1].forEach((fraction) => {
+      const value = fraction * extent;
+      const x = sx(value);
+      const y = sy(value);
+      svg.appendChild(svgElement('line', {
+        x1: x, y1: margin.top + innerHeight, x2: x, y2: margin.top + innerHeight + 5,
+        stroke: '#777'
+      }));
+      const xTick = svgElement('text', {
+        x, y: margin.top + innerHeight + 22, 'text-anchor': 'middle',
+        fill: 'currentColor', 'font-size': 11
+      });
+      xTick.textContent = `${value.toFixed(0)} m`;
+      svg.appendChild(xTick);
+      svg.appendChild(svgElement('line', {
+        x1: margin.left - 5, y1: y, x2: margin.left, y2: y, stroke: '#777'
+      }));
+      const yTick = svgElement('text', {
+        x: margin.left - 10, y: y + 4, 'text-anchor': 'end',
+        fill: 'currentColor', 'font-size': 11
+      });
+      yTick.textContent = `${value.toFixed(0)} m`;
+      svg.appendChild(yTick);
+    });
+
     const groups = {};
     ['baseline', 'map', 'tsunami'].forEach((method) => {
       const group = svgElement('g', { 'data-method': method });
