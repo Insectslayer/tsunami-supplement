@@ -83,10 +83,8 @@ Examples
         --color ray=#ffcc00 --readout
 
 Scene files are CSV with two columns, ``s,q`` (ground distance, height above
-ground).  Consecutive rows are joined into a polyline; a blank line starts a new
-polyline; ``#`` starts a comment.  A polyline that begins and ends on the ground
-is filled, so a skyline drawn from the ground up and back down becomes a solid
-silhouette.
+ground).  Consecutive rows are joined into a polyline drawn as an outline; a
+blank line starts a new polyline; ``#`` starts a comment.
 
 This script is a demonstration and is not imported by anything else; it uses the
 profile classes of ``tsunami.py`` but does its own arc-length inversion, since
@@ -120,7 +118,7 @@ from tsunami import (
 
 WORLD_SIZE = 500.0        # d_w, world radius in meters
 OBSERVER_H = 100.0        # h, observer elevation in meters
-TILE_SZ = 25.0            # d_T, ground tile size used for the chessboard
+TILE_SZ = 25.0            # spacing of the normal hairs of --show-normals
 MAX_ANGLE = 175.0         # alpha'_w reached at bending 1, in degrees
 WORLD_HEIGHT = 50.0       # h_w, only used to scale the sample scene
 
@@ -152,8 +150,6 @@ PALETTES = {
         "background": "#ffffff",
         "axes": "#404040",
         "ground": "#1f1f1f",
-        "ground_alt": "#b0b0b0",
-        "scene_face": "#4c78a8",
         "scene_edge": "#20405e",
         "flat": "#c8c8c8",
         "normals": "#7fbf7f",
@@ -167,8 +163,6 @@ PALETTES = {
         "background": "#101418",
         "axes": "#8b949e",
         "ground": "#e6edf3",
-        "ground_alt": "#7d8590",
-        "scene_face": "#3d7ea6",
         "scene_edge": "#9fd3ef",
         "flat": "#333c45",
         "normals": "#3fa86a",
@@ -182,8 +176,6 @@ PALETTES = {
         "background": "#ffffff",
         "axes": "#000000",
         "ground": "#000000",
-        "ground_alt": "#ffffff",
-        "scene_face": "#dddddd",
         "scene_edge": "#000000",
         "flat": "#aaaaaa",
         "normals": "#666666",
@@ -248,7 +240,7 @@ def densify(polyline: Polyline, max_step: float) -> Polyline:
 def sample_scene(world_radius: float, world_height: float = WORLD_HEIGHT) -> list[Polyline]:
     """A deterministic skyline: blocks of buildings receding to the world end.
 
-    One polyline that starts and ends on the ground, so it is drawn filled.
+    One polyline, running along the ground and up and over each building.
     """
     rng = np.random.default_rng(20250828)
     points: list[tuple[float, float]] = [(0.0, 0.0)]
@@ -768,33 +760,13 @@ class SideViewRenderer:
             return 1.0
         return float(np.clip(self._ray_parameter(hit), 0.0, 1.0))
 
-    def scene_shapes(self) -> list[tuple[np.ndarray, np.ndarray | None]]:
-        """Mapped scene polylines, each with its fill polygon or ``None``.
+    def scene_shapes(self) -> list[np.ndarray]:
+        """The scene polylines, mapped onto the uplifted world."""
+        return [self.c.map_points(polyline) for polyline in self.scene]
 
-        A polyline that starts and ends on the ground is filled. The closing
-        path has to run back along the *uplifted* ground rather than as a
-        straight chord, which once the world is bent would cut across it.
-        """
-        shapes = []
-        for polyline in self.scene:
-            mapped = self.c.map_points(polyline)
-            shapes.append((mapped, self._fill_polygon(polyline, mapped)))
-        return shapes
-
-    def _fill_polygon(self, polyline: Polyline, mapped: np.ndarray) -> np.ndarray | None:
-        if abs(polyline[0, 1]) > 1e-9 or abs(polyline[-1, 1]) > 1e-9:
-            return None
-        back = np.linspace(polyline[-1, 0], polyline[0, 0], 200)
-        gx, gz = self.c.ground(back)
-        return np.vstack([mapped, np.column_stack([gx, gz])])
-
-    def flat_shapes(self) -> list[tuple[np.ndarray, np.ndarray | None]]:
-        """The same, in the flat world, where the ground closes as a chord."""
-        shapes = []
-        for polyline in self.scene:
-            closed = abs(polyline[0, 1]) < 1e-9 and abs(polyline[-1, 1]) < 1e-9
-            shapes.append((polyline.copy(), polyline if closed else None))
-        return shapes
+    def flat_shapes(self) -> list[np.ndarray]:
+        """The same polylines where they started, in the flat world."""
+        return [polyline.copy() for polyline in self.scene]
 
     def bounds(self, states: Iterable[FrameState]) -> tuple[float, float, float, float]:
         """Data bounding box over every frame, so the view never jitters."""
@@ -811,7 +783,7 @@ class SideViewRenderer:
             self.apply(state)
             gx, gz = self.c.ground(self.ground_s)
             add(np.column_stack([gx, gz]))
-            for mapped, _ in self.scene_shapes():
+            for mapped in self.scene_shapes():
                 add(mapped)
             if not self.o.hide_flat:
                 flat = truncate(self.flat_ray(), self.seen_fraction())
@@ -823,7 +795,7 @@ class SideViewRenderer:
         add(self.ray_points())
         add(np.array([[0.0, self.c.h]]))
         if not self.o.hide_flat:
-            for polyline, _ in self.flat_shapes():
+            for polyline in self.flat_shapes():
                 add(polyline)
             add(np.array([[0.0, 0.0], [self.c.world_radius, 0.0]]))
 
@@ -860,35 +832,19 @@ class SideViewRenderer:
             [0.0, self.c.world_radius], [0.0, 0.0],
             color=colors["flat"], linewidth=self.o.line_scale * 1.2, zorder=1,
         )
-        for polyline, fill in self.flat_shapes():
-            if fill is not None:
-                ax.fill(
-                    fill[:, 0], fill[:, 1],
-                    facecolor=colors["flat"], edgecolor="none", alpha=0.55, zorder=1,
-                )
+        for polyline in self.flat_shapes():
             ax.plot(
                 polyline[:, 0], polyline[:, 1],
                 color=colors["flat"], linewidth=self.o.line_scale * 1.0, zorder=1,
             )
 
     def _draw_ground(self, ax) -> None:
-        """The uplifted ground, tiled so that arc length stays readable."""
-        from matplotlib.collections import LineCollection
-
-        colors = self.colors
+        """The uplifted ground, as one solid line."""
         gx, gz = self.c.ground(self.ground_s)
-        points = np.column_stack([gx, gz])
-        segments = np.stack([points[:-1], points[1:]], axis=1)
-        tile_index = np.floor(self.ground_s[:-1] / self.o.tile).astype(int)
-        segment_colors = [
-            colors["ground"] if index % 2 == 0 else colors["ground_alt"]
-            for index in tile_index
-        ]
-        ax.add_collection(
-            LineCollection(
-                segments, colors=segment_colors,
-                linewidths=self.o.line_scale * 3.0, zorder=3, capstyle="butt",
-            )
+        ax.plot(
+            gx, gz,
+            color=self.colors["ground"], linewidth=self.o.line_scale * 3.0,
+            solid_capstyle="round", zorder=3,
         )
 
     def _draw_normals(self, ax) -> None:
@@ -911,12 +867,7 @@ class SideViewRenderer:
 
     def _draw_scene(self, ax) -> None:
         colors = self.colors
-        for mapped, fill in self.scene_shapes():
-            if fill is not None:
-                ax.fill(
-                    fill[:, 0], fill[:, 1],
-                    facecolor=colors["scene_face"], edgecolor="none", alpha=0.85, zorder=4,
-                )
+        for mapped in self.scene_shapes():
             ax.plot(
                 mapped[:, 0], mapped[:, 1],
                 color=colors["scene_edge"], linewidth=self.o.line_scale * 1.4, zorder=5,
@@ -1230,7 +1181,10 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"observer position (default: 0,{OBSERVER_H:g})",
     )
     scene.add_argument("--world-radius", type=float, default=WORLD_SIZE, help="d_w in meters")
-    scene.add_argument("--tile", type=float, default=TILE_SZ, help="ground tile size in meters")
+    scene.add_argument(
+        "--tile", type=float, default=TILE_SZ,
+        help="spacing in meters of the normal hairs drawn by --show-normals",
+    )
     scene.add_argument(
         "--max-angle", type=float, default=MAX_ANGLE,
         help="alpha'_w in degrees reached at bending 1",
