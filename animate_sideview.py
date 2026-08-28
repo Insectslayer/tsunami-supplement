@@ -60,6 +60,12 @@ at, that is, the distance the paper's angle-to-distance table would return for
 this direction.  ``--ray-visible`` reveals the leading fraction of both in
 lock-step, so that a ray can be shot out over the course of an animation.
 
+An interval is walked linearly unless an easing says otherwise.  ``--easing``
+sets one for every animated control; a control may override it by naming its own
+as ``START:STOP:EASING``.  The frames stay evenly spaced in time -- the easing
+only changes how fast the value crosses its interval -- and every curve fixes
+both ends, so the first and last frame always show the interval bounds.
+
 Inverting the map is not always possible.  Where the offset lines of
 neighbouring ground points have already crossed -- past the focal surface, the
 singularity described in the paper's normal-layer section -- a point of the
@@ -77,6 +83,10 @@ Examples
     # shoot the ray out first, then bend the world, on a spherical profile
     python animate_sideview.py --method spherical --ray-visible 0:1 \
         --bending 0.6 --output shot.mp4
+
+    # settle into the bend, but reveal the ray at a constant speed
+    python animate_sideview.py --easing ease-in-out --bending 0:1 \
+        --ray-visible 0:1:linear
 
     # own scene, own colours, parameter readout visible
     python animate_sideview.py --scene city.csv --palette dark \
@@ -639,25 +649,92 @@ class FrameState:
     ray_visible: float
 
 
-class Ramp:
-    """A CLI value that is either a constant or an interval ``a:b``."""
+# ---------------------------------------------------------------------------
+# easing
+# ---------------------------------------------------------------------------
+#
+# An easing reshapes the frame fraction before it drives a control: the frames
+# are still evenly spaced in time, but the value moves through its interval at a
+# varying rate. Every curve here maps [0, 1] onto [0, 1] and fixes both ends, so
+# the first and last frame show exactly the interval bounds whichever is chosen.
+# Overshooting families (back, elastic) are deliberately absent: all four
+# controls are clamped to [0, 1], so an overshoot would flatten into a hold
+# rather than spring back.
 
-    def __init__(self, start: float, stop: float, animated: bool) -> None:
+
+def _ease_out(ease_in: Callable[[float], float]) -> Callable[[float], float]:
+    """Reverse an ease-in curve, so it decelerates instead of accelerating."""
+    return lambda t: 1.0 - ease_in(1.0 - t)
+
+
+def _ease_in_out(ease_in: Callable[[float], float]) -> Callable[[float], float]:
+    """Mirror an ease-in curve about the midpoint: accelerate, then decelerate."""
+
+    def eased(t: float) -> float:
+        if t < 0.5:
+            return 0.5 * ease_in(2.0 * t)
+        return 1.0 - 0.5 * ease_in(2.0 * (1.0 - t))
+
+    return eased
+
+
+def _expo_in(t: float) -> float:
+    return 0.0 if t <= 0.0 else 2.0 ** (10.0 * (t - 1.0))
+
+
+_EASE_IN_CURVES = {
+    "ease": lambda t: t * t,                       # quadratic, the usual default
+    "cubic": lambda t: t * t * t,
+    "sine": lambda t: 1.0 - math.cos(t * math.pi / 2.0),
+    "expo": _expo_in,
+}
+
+EASINGS: dict[str, Callable[[float], float]] = {"linear": lambda t: t}
+for _family, _curve in _EASE_IN_CURVES.items():
+    EASINGS[f"{_family}-in"] = _curve
+    EASINGS[f"{_family}-out"] = _ease_out(_curve)
+    EASINGS[f"{_family}-in-out"] = _ease_in_out(_curve)
+del _family, _curve
+
+DEFAULT_EASING = "linear"
+
+
+class Ramp:
+    """A CLI value: a constant, or an interval ``a:b`` walked with an easing."""
+
+    def __init__(self, start: float, stop: float, animated: bool, easing: str) -> None:
         self.start = start
         self.stop = stop
         self.animated = animated
+        self.easing = easing
 
     def at(self, fraction: float) -> float:
-        return self.start + (self.stop - self.start) * fraction
+        return self.start + (self.stop - self.start) * EASINGS[self.easing](fraction)
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
-        return f"Ramp({self.start}:{self.stop})" if self.animated else f"Ramp({self.start})"
+        if not self.animated:
+            return f"Ramp({self.start})"
+        return f"Ramp({self.start}:{self.stop}:{self.easing})"
 
 
-def parse_ramp(text: str, low: float, high: float, name: str) -> Ramp:
+def parse_ramp(text: str, low: float, high: float, name: str, easing: str) -> Ramp:
+    """``VALUE``, ``START:STOP``, or ``START:STOP:EASING`` overriding --easing."""
     parts = text.split(":")
-    if len(parts) > 2:
-        raise argparse.ArgumentTypeError(f"{name}: expected VALUE or START:STOP, got {text!r}")
+    if len(parts) == 3:
+        easing = parts.pop().strip()
+        if easing not in EASINGS:
+            raise argparse.ArgumentTypeError(
+                f"{name}: unknown easing {easing!r}; choose from {', '.join(EASINGS)}"
+            )
+    elif len(parts) > 3:
+        raise argparse.ArgumentTypeError(
+            f"{name}: expected VALUE, START:STOP or START:STOP:EASING, got {text!r}"
+        )
+    if len(parts) == 2 and parts[1].strip() in EASINGS:
+        raise argparse.ArgumentTypeError(
+            f"{name}: an easing needs both bounds, as START:STOP:EASING, got {text!r}"
+        )
+
     try:
         values = [float(part) for part in parts]
     except ValueError:
@@ -668,8 +745,8 @@ def parse_ramp(text: str, low: float, high: float, name: str) -> Ramp:
                 f"{name}: {value} is outside [{low:g}, {high:g}]"
             )
     if len(values) == 1:
-        return Ramp(values[0], values[0], animated=False)
-    return Ramp(values[0], values[1], animated=True)
+        return Ramp(values[0], values[0], animated=False, easing=easing)
+    return Ramp(values[0], values[1], animated=True, easing=easing)
 
 
 def frame_states(ramps: dict[str, Ramp], steps: int) -> list[FrameState]:
@@ -1149,7 +1226,8 @@ def build_parser() -> argparse.ArgumentParser:
             "Side-view demonstration of the Tsunami construction. The four "
             "controls below the profile options each accept a single VALUE or "
             "an interval START:STOP; any interval turns the run into an "
-            "animation."
+            "animation, walked with --easing or with a per-control easing "
+            "given as START:STOP:EASING."
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -1188,7 +1266,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--method", choices=sorted(METHODS), default="parabolic", help="Tsunami profile"
     )
 
-    controls = parser.add_argument_group("construction controls (VALUE or START:STOP)")
+    controls = parser.add_argument_group(
+        "construction controls (VALUE, START:STOP, or START:STOP:EASING)"
+    )
     controls.add_argument(
         "--bending", default="0:1", metavar="V",
         help="uplift, 0 = flat world, 1 = spread to --max-angle",
@@ -1204,6 +1284,12 @@ def build_parser() -> argparse.ArgumentParser:
     controls.add_argument(
         "--ray-visible", default="1", metavar="V",
         help="visible leading fraction of the cast ray, 0..1",
+    )
+    controls.add_argument(
+        "--easing", choices=list(EASINGS), default=DEFAULT_EASING, metavar="NAME",
+        help="how an interval is walked over the frames, for every control that "
+             "does not name its own as START:STOP:EASING. Choices: "
+             + ", ".join(EASINGS),
     )
 
     output = parser.add_argument_group("output")
@@ -1264,10 +1350,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         ramps = {
-            "bending": parse_ramp(options.bending, 0.0, 1.0, "--bending"),
-            "normal": parse_ramp(options.normal, 0.0, 1.0, "--normal"),
-            "arclength": parse_ramp(options.arclength, 0.0, 1.0, "--arclength"),
-            "ray_visible": parse_ramp(options.ray_visible, 0.0, 1.0, "--ray-visible"),
+            "bending": parse_ramp(options.bending, 0.0, 1.0, "--bending", options.easing),
+            "normal": parse_ramp(options.normal, 0.0, 1.0, "--normal", options.easing),
+            "arclength": parse_ramp(options.arclength, 0.0, 1.0, "--arclength", options.easing),
+            "ray_visible": parse_ramp(
+                options.ray_visible, 0.0, 1.0, "--ray-visible", options.easing
+            ),
         }
     except argparse.ArgumentTypeError as error:
         parser.error(str(error))

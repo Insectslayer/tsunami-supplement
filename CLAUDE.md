@@ -130,7 +130,10 @@ The only non-interactive, non-GUI entry point: it renders the vertical viewing p
 mp4/gif through the `Agg` backend, and is driven entirely by `argparse` (`--help` is the reference). It exists
 to make animations of *how the transformation is built*, so each stage of the map is a separate control, and
 each control accepts either a number or an interval `a:b` that is ramped over `--steps` frames; any interval
-turns the run into a video.
+turns the run into a video. The ramp is walked with an easing — `--easing` for all of them, or `a:b:easing` on
+one control to override it — from the `EASINGS` table, which builds the out and in-out variants of each family
+from its ease-in curve. Overshooting families are left out on purpose: the controls clamp to [0, 1], so an
+overshoot would flatten into a hold.
 
 A scene point is a pair `(s, q)` — ground distance, height above ground — and reaches the uplifted world as
 
