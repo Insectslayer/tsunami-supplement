@@ -174,9 +174,14 @@ def insert_before_heading(content: str, heading_id: str, addition: str) -> str:
 
 def result_figures(*figures: tuple[str, str, str]) -> str:
     blocks = []
+    compact_figures = {
+        "rq1_precision_200m_scatter.svg",
+        "rq3_csq_change.svg",
+        "rq3_workload.svg",
+    }
     for filename, alt, caption in figures:
         href = f"materials/quantitative/figures/{filename}"
-        compact_class = " result-figure--compact" if filename == "rq3_workload.svg" else ""
+        compact_class = " result-figure--compact" if filename in compact_figures else ""
         blocks.append(
             f'<figure class="result-figure{compact_class}">'
             f'<a href="{href}" target="_blank" rel="noopener">'
@@ -185,6 +190,18 @@ def result_figures(*figures: tuple[str, str, str]) -> str:
             '</figure>'
         )
     return '<div class="result-figure-grid">' + "".join(blocks) + "</div>\n"
+
+
+def interactive_precision_scatter() -> str:
+    return '''<div class="result-figure-grid">
+<figure class="result-figure result-figure--compact interactive-scatter"
+        data-csv="materials/quantitative/input/precision.csv">
+  <div class="interactive-chart" role="img"
+       aria-label="Interactive target-centred landing positions for the 200 metre Precision Task target"></div>
+  <div class="interactive-legend" aria-label="Toggle teleportation methods"></div>
+  <figcaption>Interactive counterpart: select a legend item to show or hide a teleportation method.</figcaption>
+</figure>
+</div>\n'''
 
 
 def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
@@ -257,7 +274,7 @@ def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
                 ("rq1_precision_200m_scatter.svg",
                  "Target-centred scatterplot of Precision Task landings at 200 metres.",
                  "Target-centred landing positions for the 200 m Precision Task target."),
-            )),
+            ) + interactive_precision_scatter()),
             ("rq2-spatial-awareness", result_figures(
                 ("rq1_city_direct_landing_error.svg",
                  "City Race direct-checkpoint landing-error boxplots by distance band and method.",
@@ -268,6 +285,9 @@ def add_contextual_downloads(kind: str, source: Path, content: str) -> str:
                 ("rq1_checkpoint_approach.svg",
                  "Checkpoint-approach first landing error and correction-count boxplots.",
                  "First-landing error and corrective teleport counts across complete checkpoint approaches."),
+                ("rq1_checkpoint_approach_log.svg",
+                 "Checkpoint-approach first landing error and correction-count boxplots with logarithmic axes.",
+                 "Alternative scale view: landing error uses a logarithmic axis; correction count uses a symmetric-log axis so zero-correction episodes remain visible."),
                 ("rq1_checkpoint_approach_scatter.svg",
                  "Target-centred first-landing scatterplots for complete checkpoint approaches.",
                  "Target-centred first landings before any corrective teleport in complete checkpoint approaches."),
