@@ -130,10 +130,33 @@ def file_controls(
     panel = ""
     if path.suffix.lower() == ".csv":
         preview = (
-            f'<button class="preview-button" type="button" data-csv="{href}" '
+            f'<button class="preview-button" type="button" '
             f'aria-controls="{identifier}" aria-expanded="false">Preview</button>'
         )
-        panel = f'<div class="dataset-preview" id="{identifier}" hidden></div>'
+        with path.open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.reader(stream))
+        header = rows[0] if rows else []
+        data_rows = rows[1:]
+        shown_rows = data_rows[:5]
+        head_html = "".join(f"<th>{html.escape(value)}</th>" for value in header)
+        body_html = "".join(
+            "<tr>" + "".join(f"<td>{html.escape(value)}</td>" for value in row) + "</tr>"
+            for row in shown_rows
+        )
+        shown_count = len(shown_rows)
+        total_count = len(data_rows)
+        note = (
+            f"Previewing the first {shown_count} of {total_count:,} data rows. "
+            "Download the CSV for the complete table."
+            if total_count > shown_count
+            else f"{total_count:,} data rows."
+        )
+        panel = (
+            f'<div class="dataset-preview" id="{identifier}" hidden>'
+            '<div class="table-scroll"><table class="data-table">'
+            f'<thead><tr>{head_html}</tr></thead><tbody>{body_html}</tbody>'
+            f'</table></div><p class="preview-note">{html.escape(note)}</p></div>'
+        )
     return (
         f'<div class="context-file-actions">{name}'
         f'{preview}<a class="file-link" href="{href}" download>Download</a></div>{panel}'
