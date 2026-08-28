@@ -392,7 +392,6 @@ def page(kind: str, title: str, lede: str, content: str) -> str:
   <a href="qualitative-results.html"{current['qualitative']}>Qualitative results</a>
 </nav>
 <header class="masthead">
-  <p class="eyebrow">Reviewer-facing supplementary material</p>
   <h1>{html.escape(title)}</h1>
   <p class="lede">{html.escape(lede)}</p>
 </header>
