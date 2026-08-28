@@ -21,15 +21,69 @@ The project implements several one-dimensional uplift profiles and applies them 
 
 `web/index.html` recreates the appendix of `paper/main.md` as an interactive page: the text is unchanged, and
 each static figure is replaced by a live construction that responds to a profile selector and an uplift slider
-shared by every figure. Open it directly in a browser — no server needed. `web/appendix.html` is the same page
-as a single self-contained file.
+shared by every figure. Two further pages, `web/quantitative-results.html` and `web/qualitative-results.html`,
+carry the study results with dataset previews and download links.
 
-Rebuild it after editing the paper or anything under `web/`:
+Rebuild everything after editing the paper or anything under `web/`:
 
 ```bash
 cd build
 source build.sh
 ```
+
+### Which file to open
+
+The build produces three HTML outputs, in increasing order of self-containment:
+
+| File | Contains | Needs the files around it |
+|------|----------|---------------------------|
+| `web/index.html` | interactive appendix | yes — `css/`, `js/`, `vendor/` |
+| `web/appendix.html` | interactive appendix | no |
+| `build/bundle/supplement.html` | appendix **and** both results pages | no |
+
+All three open by double-click, with no web server. Use `web/index.html` while working on the page: it loads
+the real `css/` and `js/` files, so a change shows up on reload without a rebuild.
+
+### Sharing it offline
+
+**`build/bundle/supplement.html` is the copy to send to anyone who will read the material offline** — a
+reviewer, a collaborator, an artifact submission. It is a review artifact rather than part of the site, so it
+is not committed; build it when you need it.
+
+The reason is that a browser opening a `file://` page cannot always read the files sitting next to it, and
+`web/index.html` needs ten of them, plus the KaTeX fonts those pull in. Two common situations break it:
+
+- a sandboxed browser (Flatpak, Snap) is handed one file through the desktop's document portal and can see
+  *only* that file;
+- a reader clicks `index.html` inside a ZIP without extracting it first.
+
+In both cases every relative stylesheet, script, and image fails to load and the page arrives as unstyled
+text. The same restriction blocks `fetch()`, which is what the dataset preview buttons on the results pages
+use, which is why the preview tables are rendered into the page ahead of time rather than loaded on click. A
+reader who meets a broken page will assume the supplement is broken rather than debug it.
+
+The bundle avoids all of it by embedding everything: the three pages become three views of one
+document, with the CSS, JavaScript, KaTeX fonts, result figures, and downloadable datasets inlined. The dataset
+preview tables are part of the markup already, so they open without loading anything.
+
+```bash
+node build/bundle/bundle.js          # everything embedded    (~11.4 MB)
+node build/bundle/bundle.js --lean   # pages and figures only  (~4.8 MB)
+```
+
+Everything specific to the bundle lives in `build/bundle/`: the builder, its checker, and the two assets
+(`extra.css`, `router.js`) it inlines. The output is written there too and is gitignored.
+
+Both builds are fully readable; they differ only in whether the raw data travels with the file. The lean build
+omits it — most of the weight is the 3.4 MB analysis notebook — so its download links resolve only when the
+`web/` folder is present beside it. Verify either build with:
+
+```bash
+node build/bundle/check.js
+```
+
+which copies the bundle to an empty directory and opens it over `file://` with no browser permissions, so
+anything that still depends on a neighbouring file shows up as a failure.
 
 ## Installation
 

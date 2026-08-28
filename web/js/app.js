@@ -137,12 +137,16 @@
    * Contents rail
    * ---------------------------------------------------------------- */
 
-  function buildContents() {
-    const rail = document.getElementById('toc');
+  // `root` scopes the rail to one section of the document. Standalone that is
+  // the whole document; in the single-file bundle each view carries its own
+  // rail and its own .paper, so both are looked up inside the view.
+  function buildContents(root) {
+    const rail = root.querySelector('.toc');
+    if (!rail) return;
     // Every heading convert.js emits, whatever depth the source gives it; the
     // rail indents by that depth rather than by the HTML tag, so bumping the
     // headings a level in paper/main.md does not drop a tier from the rail.
-    const headings = document.querySelectorAll('.paper [class*="heading-l"]');
+    const headings = root.querySelectorAll('.paper [class*="heading-l"]');
     if (!headings.length) return;
 
     const links = [];
@@ -206,7 +210,9 @@
   function boot() {
     buildControlBar();
     mountFigures();
-    buildContents();
+    // The bundle wraps the appendix in a view element; standalone there is none
+    // and the whole document is the scope.
+    buildContents(document.querySelector('[data-view="appendix"]') || document);
 
     // Warm the remaining uplift tables while the page is idle, so switching
     // profiles later does not stall on the first bisection sweep.

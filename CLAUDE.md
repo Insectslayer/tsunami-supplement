@@ -60,10 +60,12 @@ static figure replaced by a live construction. It is generated, not hand-edited 
 after changing anything under `web/`.
 
 ```bash
-node build/convert.js    # paper/main.md appendix -> web/content.html (KaTeX prerendered)
-node build/assemble.js   # template + content + assets -> web/index.html and web/appendix.html
-node build/verify.js     # JS profile maths vs build/reference.json
-node build/check.js      # headless Chrome: renders, console errors, layout
+node build/convert.js      # paper/main.md appendix -> web/content.html (KaTeX prerendered)
+node build/assemble.js     # template + content + assets -> web/index.html and web/appendix.html
+node build/bundle/bundle.js # the whole site -> build/bundle/supplement.html (one offline file)
+node build/verify.js        # JS profile maths vs build/reference.json
+node build/check.js         # headless Chrome: renders, console errors, layout (index.html only)
+node build/bundle/check.js  # the bundle alone in an empty directory over file://
 ```
 
 Where a figure belongs is decided in the markdown: a line reading `@@figure:<name>@@` becomes the slot that
@@ -80,8 +82,32 @@ Figures and sections are referenced in the following way:
   `.heading-number` span, which `app.js` reuses for the contents rail;
 - tables: labelled by the id on the pandoc div (`::: {#tab:parameters}`), numbered 1..n; the div must carry an id or the build fails.
 
-`web/appendix.html` is a single self-contained file (CSS, JS and KaTeX fonts inlined) for sharing; `index.html`
-links the same assets. `build/reference.py` regenerates `reference.json` and needs numpy/scipy/trimesh.
+There are three build outputs, in increasing order of self-containment. `web/index.html` links its assets.
+`web/appendix.html` is the appendix alone with CSS, JS and KaTeX fonts inlined. `build/bundle/supplement.html`
+is the whole site — appendix plus both results pages — in one file, and is the copy meant to reach reviewers
+offline. It is a review artifact rather than part of the site, so it is built next to its own scripts and
+gitignored (`build/.gitignore`); rebuild it on demand. `build/reference.py` regenerates `reference.json` and
+needs numpy/scipy/trimesh.
+
+`build/bundle/` holds everything specific to that file. `bundle.js` builds it, `check.js` verifies it,
+`extra.css` and `router.js` are bundle-only assets it inlines, and `../inline.js` is the asset inlining it
+shares with `assemble.js`. It exists because a browser on a `file://` URL cannot always read the files next to it: a
+sandboxed browser (Flatpak, Snap) handed a single file through xdg-document-portal sees only that file, and so
+does a reader clicking `index.html` inside an unextracted ZIP — every relative asset 404s and the page arrives
+as unstyled text. The bundle folds the three pages into three `.view` sections of one document and embeds every
+asset: figures become data: URIs, and every downloadable file goes into `SUPPLEMENT_FILES` and is served as a
+blob URL. The dataset previews need nothing from the bundler — `supplement.py` renders those tables into the
+markup, so they work over `file://` on the standalone pages too. `--lean` embeds no downloadable data at all,
+roughly 4.8 MB against 11.4 MB; the difference is dominated by the 3.4 MB analysis notebook.
+
+Anything placed in a `<script>` must go through `jsonForScript`, not bare `JSON.stringify`: the notebook's saved
+pandas and Colab outputs contain the literal `</script>`, which closes the element early and leaves the rest of
+the data to be parsed as markup. `build/bundle/check.js` fails on any stray element in `<body>` for this reason.
+
+Both `app.js` and `results.js` scope themselves to a root element so the same code serves one page per document
+and three views in one: they find the contents rail by `.toc` class rather than by id, and `results.js` wires
+itself once per `[data-view$="-results"]` section, falling back to the whole document when there is none.
+Standalone, `web/` behaves exactly as before.
 
 `web/js/tsunami.js` is a port of the profile mathematics in `tsunami.py`, verified to ~1e-7 relative against
 tight-tolerance quadrature. Two deliberate differences from the Python: arc-length inversion uses composite

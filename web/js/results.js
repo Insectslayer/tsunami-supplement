@@ -1,10 +1,13 @@
 (function () {
   'use strict';
 
-  function buildContents() {
-    const rail = document.getElementById('toc');
+  // `root` scopes a page's wiring to one part of the document. Standalone that
+  // is the whole document; the single-file bundle holds all three pages at once
+  // and passes the view, so each gets its own rail and its own panels.
+  function buildContents(root) {
+    const rail = root.querySelector('.toc');
     if (!rail) return;
-    const headings = [...document.querySelectorAll('.paper h2, .paper h3')];
+    const headings = [...root.querySelectorAll('.paper h2, .paper h3')];
     const links = [];
     headings.forEach((heading) => {
       if (!heading.id) return;
@@ -27,12 +30,12 @@
     links.forEach(({ heading }) => observer.observe(heading));
   }
 
-  function wirePreviews() {
-    document.querySelectorAll('.preview-button[aria-controls]').forEach((button) => {
+  function wirePreviews(root) {
+    root.querySelectorAll('.preview-button[aria-controls]').forEach((button) => {
       button.addEventListener('click', () => {
         const target = document.getElementById(button.getAttribute('aria-controls'));
         const opening = target.hidden;
-        document.querySelectorAll('.dataset-preview').forEach((panel) => {
+        root.querySelectorAll('.dataset-preview').forEach((panel) => {
           if (panel !== target) panel.hidden = true;
         });
         if (!opening) {
@@ -157,8 +160,8 @@
     });
   }
 
-  function wireInteractiveFigures() {
-    document.querySelectorAll('.interactive-scatter[data-points]').forEach((figure) => {
+  function wireInteractiveFigures(root) {
+    root.querySelectorAll('.interactive-scatter[data-points]').forEach((figure) => {
       try {
         buildInteractivePrecisionScatter(figure);
       } catch (error) {
@@ -168,8 +171,16 @@
     });
   }
 
-  buildContents();
-  wirePreviews();
-  wireInteractiveFigures();
+  function init(root) {
+    buildContents(root);
+    wirePreviews(root);
+    wireInteractiveFigures(root);
+  }
+
+  // Standalone there is one results page and the document is the scope. The
+  // single-file bundle holds both results pages at once, each in its own view.
+  const views = document.querySelectorAll('[data-view$="-results"]');
+  if (views.length) views.forEach(init);
+  else init(document);
   document.body.dataset.ready = 'true';
 })();
