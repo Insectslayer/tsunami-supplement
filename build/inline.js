@@ -19,6 +19,7 @@ const SCRIPTS = [
   'js/figures-1d.js',
   'js/figures-2d.js',
   'js/figures-3d.js',
+  'js/figures-construction.js',
   'js/app.js',
 ];
 

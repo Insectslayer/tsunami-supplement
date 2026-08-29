@@ -697,10 +697,70 @@
     return plot;
   }
 
+  /**
+   * Pointer dragging for figures with grab handles.
+   *
+   * `hitTest` is given the pointer in both pixel and data coordinates and
+   * returns an identifier for whatever it grabbed, or null. While a handle is
+   * held the pointer is captured, so the drag survives leaving the canvas, and
+   * `touch-action` is disabled so that a drag does not scroll the page instead.
+   */
+  function attachDrag(plot, options) {
+    const canvas = plot.canvas;
+    const locate = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = event.clientX - rect.left;
+      const py = event.clientY - rect.top;
+      return { px, py, x: plot.dataX(px), y: plot.dataY(py) };
+    };
+
+    let held = null;
+    canvas.style.touchAction = 'none';
+
+    canvas.addEventListener('pointerdown', (event) => {
+      const point = locate(event);
+      const handle = options.hitTest(point);
+      if (handle == null) return;
+      held = handle;
+      canvas.setPointerCapture(event.pointerId);
+      canvas.style.cursor = 'grabbing';
+      event.preventDefault();
+      if (options.onStart) options.onStart(handle, point);
+    });
+
+    canvas.addEventListener('pointermove', (event) => {
+      const point = locate(event);
+      if (held == null) {
+        // Only the cursor changes on a bare hover, so that the handles
+        // announce themselves without the figure redrawing on every move.
+        canvas.style.cursor = options.hitTest(point) == null ? '' : 'grab';
+        return;
+      }
+      event.preventDefault();
+      options.onDrag(held, point);
+    });
+
+    const release = (event) => {
+      if (held == null) return;
+      const handle = held;
+      held = null;
+      canvas.style.cursor = '';
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+      if (options.onEnd) options.onEnd(handle);
+    };
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointercancel', release);
+
+    return plot;
+  }
+
   global.Viz = {
     Plot,
     Theme,
     attachHover,
+    attachDrag,
     showTooltip,
     hideTooltip,
     niceTicks,

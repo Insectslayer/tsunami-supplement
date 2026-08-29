@@ -128,7 +128,7 @@ controlling the degree of uplift. Figure @@ref:profiles@@ shows
 animations of a world of radius $500$ being uplifted using the different
 transformation methods for increasing $\alpha'_w$ parameter.
 
-@@figure:angular-construction@@
+@@figure:construction@@
 
 ## Parabolic Tsunami
 
@@ -345,6 +345,8 @@ finite intersection. If $v_1=0$, the ray is vertical: a
 downward-pointing ray intersects the profile at the origin, while an
 upward-pointing ray does not intersect the profile in front of the
 observer.
+
+@@figure:angular-construction@@
 
 ## Spherical Tsunami
 

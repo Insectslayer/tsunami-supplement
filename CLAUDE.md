@@ -109,6 +109,16 @@ and three views in one: they find the contents rail by `.toc` class rather than 
 itself once per `[data-view$="-results"]` section, falling back to the whole document when there is none.
 Standalone, `web/` behaves exactly as before.
 
+`web/js/figures-construction.js` is the browser twin of `animate_sideview.py`: one panel holding the flat and
+the uplifted world at once, with that script's arc-length `a` and normal `w` as figure-local sliders while the
+uplift stays on the global α′_w. It carries its own small `Construction` class — the blended `distanceToT` and
+`offsetDirection`, the sign-change inversion of the map, and the ray/ground intersection — because none of that
+is in `tsunami.py` and so none of it belongs in `web/js/tsunami.js`, which stays the pure profile port that
+`build/verify.js` checks. The tables it scans are keyed on profile, α′_w and both sliders, so dragging a ray
+handle reuses them: about 1.1 ms per redraw against 1.7 ms when the uplift moves. Dragging itself comes from
+`Viz.attachDrag` in `plot.js`, the one piece added for this figure that other figures can reuse — it captures
+the pointer and sets `touch-action: none` so a drag does not scroll the page instead.
+
 `web/js/tsunami.js` is a port of the profile mathematics in `tsunami.py`, verified to ~1e-7 relative against
 tight-tolerance quadrature. Two deliberate differences from the Python: arc-length inversion uses composite
 Gauss–Legendre plus Newton refinement (`tsunami.py`'s `s_to_xy` goes through `np.gradient` + trapezoid +

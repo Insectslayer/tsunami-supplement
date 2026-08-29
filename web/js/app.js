@@ -13,7 +13,8 @@
     {},
     global.Figures1D,
     global.Figures2D,
-    global.Figures3D
+    global.Figures3D,
+    global.FiguresConstruction
   );
 
   function element(tag, className, text) {
