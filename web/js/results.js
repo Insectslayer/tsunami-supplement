@@ -1,6 +1,66 @@
 (function () {
   'use strict';
 
+  function span(className, text) {
+    const node = document.createElement('span');
+    node.className = className;
+    node.textContent = text;
+    return node;
+  }
+
+  /**
+   * Numbers the headings hierarchically, the way convert.js numbers the
+   * appendix: the number goes on the heading as `data-number` and into a
+   * `.heading-number` span, and the heading's own words move into a
+   * `.heading-text` span so the contents rail can read them back without it.
+   *
+   * These pages are generated from a README rather than from paper/main.md, so
+   * the numbering happens here rather than at build time. It is skipped
+   * entirely if the markup already carries numbers, leaving room for the
+   * generator to take the job over later without producing them twice.
+   *
+   * The top level is whichever heading level the page actually starts at, and
+   * anything above it stays unnumbered: the qualitative page opens with two
+   * front-matter h3s before its first h2, and numbering those as 0.1 and 0.2
+   * would be worse than leaving them plain.
+   */
+  function numberHeadings(root) {
+    const headings = [...root.querySelectorAll('.paper h2, .paper h3, .paper h4')];
+    if (!headings.length || headings.some((heading) => heading.dataset.number)) return;
+
+    const top = Math.min(...headings.map((heading) => Number(heading.tagName[1])));
+    const counters = [];
+    let started = false;
+
+    headings.forEach((heading) => {
+      const depth = Number(heading.tagName[1]) - top;
+      if (depth === 0) started = true;
+      if (!started) return;
+
+      counters.length = depth + 1;
+      for (let i = 0; i <= depth; i += 1) if (counters[i] == null) counters[i] = 0;
+      counters[depth] += 1;
+      const number = counters.join('.');
+
+      const text = span('heading-text', '');
+      while (heading.firstChild) text.appendChild(heading.firstChild);
+
+      // The four theme headings of the qualitative page are hand-numbered in
+      // the source ("### 1. Locomotion Suitability ..."). Left alone they would
+      // read "2.1  1. Locomotion ...", so the manual prefix gives way to the
+      // generated one. The pattern needs a digit, a dot and a space, which
+      // leaves headings that merely start with a number ("3D ...") untouched.
+      const first = text.firstChild;
+      if (first && first.nodeType === Node.TEXT_NODE) {
+        first.nodeValue = first.nodeValue.replace(/^\s*\d+\.\s+/, '');
+      }
+
+      heading.dataset.number = number;
+      heading.appendChild(span('heading-number', number));
+      heading.appendChild(text);
+    });
+  }
+
   // `root` scopes a page's wiring to one part of the document. Standalone that
   // is the whole document; the single-file bundle holds all three pages at once
   // and passes the view, so each gets its own rail and its own panels.
@@ -14,7 +74,9 @@
       const link = document.createElement('a');
       link.className = heading.tagName === 'H2' ? 'level-1' : 'level-2';
       link.href = `#${heading.id}`;
-      link.textContent = heading.textContent;
+      if (heading.dataset.number) link.appendChild(span('toc-number', heading.dataset.number));
+      const text = heading.querySelector('.heading-text');
+      link.appendChild(document.createTextNode(text ? text.textContent : heading.textContent));
       rail.appendChild(link);
       links.push({ heading, link });
     });
@@ -172,6 +234,7 @@
   }
 
   function init(root) {
+    numberHeadings(root);
     buildContents(root);
     wirePreviews(root);
     wireInteractiveFigures(root);
