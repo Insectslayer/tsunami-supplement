@@ -3,8 +3,8 @@ regions of a scene, thereby increasing their visibility to the observer.
 We first introduce the transformation for lines and planes and then
 extend the concept to a three-dimensional world.
 
-Consider the ground (flat world) represented by the $xy$-plane and an observer
-located at $Q=(0,0,\ensuremath{h})$, that is, $\ensuremath{h}$ units
+Consider the ground (flat world) represented by the $xz$-plane and an observer
+located at $Q=(0,\ensuremath{h},0)$, that is, $\ensuremath{h}$ units
 above the origin. The observer's viewing direction in the vertical plane
 is described by the angle $\ensuremath{\alpha}\in [0^\circ,180^\circ]$,
 where $\ensuremath{\alpha}=0^\circ$ corresponds to looking down towards
@@ -19,12 +19,11 @@ camera model. The image plane is located at focal distance $f$, and the
 display consists of $(2\ensuremath{N}+1)\times(2\ensuremath{M}+1)$
 pixels, each of size $\ensuremath{d_p}\times\ensuremath{d_p}$. The image
 coordinate system is centered at the middle pixel, whose coordinates are
-$(0,0)$. We use $(i,j)$ to denote discrete pixel coordinates and $(u,v)$
-to denote continuous coordinates in the image plane. The corresponding
-continuous coordinates of pixel $(i,j)$ are therefore
-$(u,v)=(i\ensuremath{d_p},j\ensuremath{d_p})$. From the observer's point
-of view, the positive $u$-axis points to the right and the positive
-$v$-axis points upward.
+$(0,0)$. We use $(i,j)$ to denote discrete pixel coordinates; the
+corresponding continuous coordinates of pixel $(i,j)$ in the image plane
+are therefore $(i\ensuremath{d_p},j\ensuremath{d_p})$. From the
+observer's point of view, the first image axis points to the right and
+the second points upward.
 
 We assume the observer views a flat disc world of radius
 $\ensuremath{d_{w}}$, covered by a chessboard pattern with tiles of size
@@ -55,7 +54,7 @@ approximately $141^\circ$.
 
 The observer's viewing direction $\ensuremath{\alpha}$ may span the
 interval $[0^\circ,180^\circ]$ within the vertical viewing plane, which
-we identify with the $xz$-plane. For a flat world, however, only half of
+we identify with the $xy$-plane. For a flat world, however, only half of
 this interval corresponds to visible ground, with the horizon occurring
 at $\ensuremath{\alpha}=90^\circ$. The purpose of uplifting the ground
 is to extend the angular range over which it remains visible. We denote
@@ -64,16 +63,16 @@ its corresponding point in the curved world.
 
 The positions of these points in the vertical viewing plane can be
 described using several coordinate systems. A natural choice is the
-Cartesian pair $(x,z)$, where $x$ is the distance of the point's
+Cartesian pair $(x,y)$, where $x$ is the distance of the point's
 orthogonal projection onto the flat world plane from the origin,
-and $z$ is the point's elevation. For a point $P$ on the flat world, 
-$z=0$ and $x$ is equal to its distance $s$ from the origin.
-Thus, the scalar $s$ provides a simpler one-dimensional parametrization
+and $y$ is the point's elevation. For a point $P$ on the flat world,
+$y=0$ and $x$ is therefore equal to its distance from the origin, so
+the single scalar $x$ already provides a one-dimensional parametrization
 of the flat ground.
 
 Similarly, once the uplifted profile is known, the position of the
 corresponding point $P'$ can also be described by a single parameter
-$s'$, interpreted as the **arc length** measured along the uplifted
+$L$, interpreted as the **arc length** measured along the uplifted
 curve from the origin. We require the Tsunami transformation to preserve
 the apparent ordering of points as seen by the observer. Consequently,
 the position of a point can also be uniquely characterized by the
@@ -83,25 +82,25 @@ In the following, we introduce four methods for mapping a point $P$ in
 the flat world to a corresponding point $P'$ on an uplifted
 profile. We impose the following requirements: (1) the transformation is
 smooth; (2) the arc length from the origin to $P'$ along the uplifted
-profile remains equal to the flat world distance $s'=s$; and (3)
+profile remains equal to the flat world distance, $L=x$; and (3)
 the apparent ordering of points, as seen by the observer, is preserved
-($s_1>s_2\Rightarrow \alpha'(s_1)>\alpha'(s_2)$).
+($x_1>x_2\Rightarrow \alpha'(x_1)>\alpha'(x_2)$).
 
 @@figure:profiles@@
 
 # One-dimensional Tsunami transformations {#sec:1d_tsunami}
 
 We represent the original flat world by the curve
-${\mathbf{g}(s)} = \{(s, 0):s\in[0, \ensuremath{d_{w}}]\}$. Our goal is
+${\mathbf{g}} = \{(x, 0):x\in[0, \ensuremath{d_{w}}]\}$. Our goal is
 to construct a mapping
 $T: [0, \ensuremath{d_{w}}]\rightarrow \ensuremath{\mathbb{R}}^2$ that
-maps each point $P=(s,0)\in{\mathbf{g}(s)}$ to a corresponding point
-$P'=T(s)$ on the uplifted profile. We denote the transformed ground by
-${\mathbf{g'}(s)}$,
-${\mathbf{g'}(s)}=\{T(s):s\in[0, \ensuremath{d_{w}}]\}$. Let $\alpha(s)$
-denote the viewing angle of a point $P=(s,0)$ in the flat world.
+maps each point $P=(x,0)\in{\mathbf{g}}$ to a corresponding point
+$P'=T(x)$ on the uplifted profile. We denote the transformed ground by
+${\mathbf{g'}}$,
+${\mathbf{g'}}=\{T(x):x\in[0, \ensuremath{d_{w}}]\}$. Let $\alpha(x)$
+denote the viewing angle of a point $P=(x,0)$ in the flat world.
 With the angle measured from the downward vertical direction, we have
-$\alpha(s)=\arctan({s}/{\ensuremath{h}})$. The viewing angle of the
+$\alpha(x)=\arctan({x}/{\ensuremath{h}})$. The viewing angle of the
 world boundary is therefore
 $\alpha_w = \arctan( {\ensuremath{d_{w}}}/{\ensuremath{h}})$.
 
@@ -113,9 +112,9 @@ $[\alpha_w,90^\circ)$, while viewing angles in $(90^\circ,180^\circ]$
 point above the horizon ($\alpha = 90^\circ$) and therefore the viewing
 ray do not intersect the flat ground.
 
-We denote by $\alpha'(s)$ the viewing angle of the transformed point
-$P'=T(s)$. Requirement (3) implies that $\alpha'(s)$ must be a strictly
-increasing function of $s$, so that the apparent ordering of points is
+We denote by $\alpha'(x)$ the viewing angle of the transformed point
+$P'=T(x)$. Requirement (3) implies that $\alpha'(x)$ must be a strictly
+increasing function of $x$, so that the apparent ordering of points is
 preserved. As the ground is uplifted while its arc length is maintained,
 the transformed world boundary is generally seen at a larger angle
 $\alpha'_w=\alpha'(\ensuremath{d_{w}})>\alpha_w$. The Tsunami
@@ -134,19 +133,19 @@ transformation methods for increasing $\alpha'_w$ parameter.
 
 The parabolic Tsunami transformation maps the flat world onto a
 parabolic profile. In the vertical viewing plane, the profile is
-described by $$(x',z')=(x,px^2),$$ where $p\geq 0$ controls the degree
-of uplift.
+described by $$(x',y')=(u,pu^2),$$ where $u\geq 0$ is the curve
+parameter and $p\geq 0$ controls the degree of uplift.
 
 One advantage of this formulation is that both the tangent and normal
 vectors are easy to compute. A tangent vector to the parabolic profile
-is $$(1,2px),$$ while a corresponding unit normal vector is
-$$\frac{(-2px,1)}{\sqrt{1+4p^2x^2}}.$$
+is $$(1,2pu),$$ while a corresponding unit normal vector is
+$$\frac{(-2pu,1)}{\sqrt{1+4p^2u^2}}.$$
 
 However, although the arc length of a parabola can be expressed
 analytically, the resulting arc-length relation cannot be inverted in
-closed form. Therefore, to map an original ground point at distance $s$
+closed form. Therefore, to map an original ground point at distance $x$
 to a point $P'$ on the parabola while preserving arc length, the
-corresponding parameter value $x$ must be found numerically.
+corresponding parameter value $u$ must be found numerically.
 Consequently, the value of $p$ that produces a prescribed transformed
 boundary angle $\alpha'_w$ must also be determined numerically; see
 Section @@ref:sec:computational_remarks@@.
@@ -154,17 +153,17 @@ Section @@ref:sec:computational_remarks@@.
 The intersection of the parabolic profile with a viewing ray originating
 at the observer and pointing in the direction $\mathbf{v}=(v_1,v_2)$ can
 be computed directly. The ray is parametrized as
-$$\mathbf{r}(t)=(0,h)+t(v_1,v_2), \qquad t\geq 0,$$ and the parabolic
-profile is given by $$z=px^2.$$ Substituting $x=tv_1$ and $z=h+tv_2$
-into the parabola equation yields $$pv_1^2t^2-v_2t-h=0.$$ The physically
+$$\mathbf{r}(t)=(0,h)+t(v_1,v_2), \qquad t\geq 0,$$ so that a ray point
+has coordinates $(tv_1,h+tv_2)$. It lies on the profile when
+$h+tv_2=p(tv_1)^2$, that is, $$pv_1^2t^2-v_2t-h=0.$$ The physically
 relevant solution is the non-negative value of $t$, corresponding to the
 intersection in front of the observer. For $p>0$ and $v_1\neq 0$, the
-horizontal coordinate of the intersection is
-$$x= \frac{v_2+\sqrt{v_2^2+4pv_1^2h}}{2pv_1},$$ assuming $v_1>0$.
+profile parameter at the intersection is
+$$u= \frac{v_2+\sqrt{v_2^2+4pv_1^2h}}{2pv_1},$$ assuming $v_1>0$.
 
 When $p=0$, the profile reduces to the original flat world. For a
 downward-pointing ray, $v_2<0$, the intersection is then given by
-$$x=-\frac{v_1h}{v_2}.$$ If $v_1=0$, the ray is vertical: a
+$$u=-\frac{v_1h}{v_2}.$$ If $v_1=0$, the ray is vertical: a
 downward-pointing ray intersects the profile at the origin, whereas an
 upward-pointing ray does not intersect it in front of the observer.
 
@@ -178,44 +177,44 @@ the uplifted ground eventually.
 The hyperbolic Tsunami transformation is designed not only to raise the
 world boundary to the prescribed viewing angle $\alpha'_w$, but also to
 keep the horizon beyond the transformed world boundary. In the vertical
-viewing plane, the hyperbolic profile is defined by $$(x',z')=
+viewing plane, the hyperbolic profile is defined by $$(x',y')=
 \left(
-x,\sqrt{p^2x^2+b^2}-b
+u,\sqrt{p^2u^2+b^2}-b
 \right),$$ where $p\geq 0$ controls the asymptotic slope, and $b\geq 0$
 controls how rapidly the profile approaches its asymptote.
 
 More precisely, the profile is a branch of a hyperbola with its vertex
-at the origin and the asymptote $$z'=px'-b.$$ Thus, $p$ determines the
+at the origin and the asymptote $$y'=px'-b.$$ Thus, $p$ determines the
 slope of the asymptote, whereas $b$ determines its downward offset. In
-the limiting case $b=0$, the profile reduces, for $x\geq 0$, to the
-straight line $z=px$; the initially flat world is therefore rotated
+the limiting case $b=0$, the profile reduces, for $u\geq 0$, to the
+straight line $y'=pu$; the initially flat world is therefore rotated
 about the origin. Since the profile approaches a line of slope $p$, the
 transformed horizon is observed at $$\alpha_h=90^\circ+\arctan(p).$$
 
 A tangent vector to the profile is
-$$\left(1, \frac{p^2x}{\sqrt{p^2x^2+b^2}}
+$$\left(1, \frac{p^2u}{\sqrt{p^2u^2+b^2}}
 \right),$$ and a corresponding, generally non-unit, normal vector is
 $$\left(
--\frac{p^2x}{\sqrt{p^2x^2+b^2}},
+-\frac{p^2u}{\sqrt{p^2u^2+b^2}},
 1
 \right).$$
 
 The intersection of the hyperbolic profile with a viewing ray can also
 be obtained analytically. Let the observer be located at $(0,h)$ and let
 the viewing direction be $\mathbf{v}=(v_1,v_2)$. For $v_1\neq 0$, the
-ray can be written as $$z=h+qx,$$ where $$q=\frac{v_2}{v_1}$$ is the
+ray can be written as $$y=h+mu,$$ where $$m=\frac{v_2}{v_1}$$ is the
 slope of the ray.
 
 Substituting the ray equation into the profile equation gives
-$$\sqrt{p^2x^2+b^2}=b+h+qx.$$ After squaring and rearranging the terms,
-we obtain the quadratic equation $$\left(p^2-q^2\right)x^2
--2(b+h)qx
+$$\sqrt{p^2u^2+b^2}=b+h+mu.$$ After squaring and rearranging the terms,
+we obtain the quadratic equation $$\left(p^2-m^2\right)u^2
+-2(b+h)mu
 -h(2b+h)=0.$$
 
-Introducing $$c_1=p^2-q^2,
+Introducing $$c_1=p^2-m^2,
 \qquad
-c_2=(b+h)q,$$ the physically relevant intersection in front of the
-observer is $$x=
+c_2=(b+h)m,$$ the physically relevant intersection in front of the
+observer is $$u=
 \frac{
 c_2+\sqrt{c_2^2+h(2b+h)c_1}
 }{
@@ -223,8 +222,8 @@ c_1
 },$$ provided that $c_1\neq 0$. The positive square-root branch is
 selected because it yields the forward intersection with the profile.
 
-When $c_1=0$, that is, when $q^2=p^2$, the quadratic term vanishes and
-the equation becomes linear. The intersection is then given by $$x=
+When $c_1=0$, that is, when $m^2=p^2$, the quadratic term vanishes and
+the equation becomes linear. The intersection is then given by $$u=
 -\frac{h(2b+h)}{2c_2}.$$
 
 The asymptote of the profile has slope $p$. Therefore, if
@@ -237,8 +236,8 @@ does not intersect it in front of the observer.
 Although the arc length of a hyperbola can be expressed analytically,
 its arc-length relation cannot, in general, be inverted in closed form.
 Consequently, the point $P'$ corresponding to an original ground
-distance $s$ must be determined numerically; see
-Section @@ref:sec:computational_remarks@@.
+distance $x$ must be determined numerically; see
+Section @@ref:sec:computational_remarks@@.
 
 ## Angular Tsunami
 
@@ -251,28 +250,28 @@ construction, where $d'=d$ and $\alpha'=2\alpha$ is illustrated in
 Figure @@ref:angular-construction@@.
 
 Let $h'>0$ denote an effective observer height that controls the degree
-of uplift. A point $(s,0)$ in the flat world is seen from the
+of uplift. A point $(u,0)$ in the flat world is seen from the
 effective observer position $(0,h')$ at an angle $\alpha$, where
-$$\sin\alpha=\frac{s}{d'},
+$$\sin\alpha=\frac{u}{d'},
 \qquad
 \cos\alpha=\frac{h'}{d'},
 \qquad
-d'=\sqrt{s^2+h'^2}.$$ The transformed point is placed at the same
+d'=\sqrt{u^2+h'^2}.$$ The transformed point is placed at the same
 distance $d'$ from the effective observer, but at the doubled angle
 $2\alpha$. Its coordinates are therefore $$x'=d'\sin(2\alpha),
 \qquad
-z'=h'-d'\cos(2\alpha).$$
+y'=h'-d'\cos(2\alpha).$$
 
 Using the double-angle identities, we obtain
-$$x'= d' 2\sin\alpha\cos\alpha = 
-\frac{2sh'}{\sqrt{s^2+h'^2}},$$ and
-$$z' = h'-d'\left(\cos^2\alpha-\sin^2\alpha\right)
+$$x'= d' 2\sin\alpha\cos\alpha =
+\frac{2uh'}{\sqrt{u^2+h'^2}},$$ and
+$$y' = h'-d'\left(\cos^2\alpha-\sin^2\alpha\right)
 =
-h'-\frac{h'^2-s^2}{\sqrt{s^2+h'^2}}.$$ Hence, the transformed profile is
-given by $$(x',z') =
+h'-\frac{h'^2-u^2}{\sqrt{u^2+h'^2}}.$$ Hence, the transformed profile is
+given by $$(x',y') =
 \left(
-\frac{2sh'}{\sqrt{s^2+h'^2}},
-h'-\frac{h'^2-s^2}{\sqrt{s^2+h'^2}}
+\frac{2uh'}{\sqrt{u^2+h'^2}},
+h'-\frac{h'^2-u^2}{\sqrt{u^2+h'^2}}
 \right).$$
 
 The parameter $h'$ may be interpreted as the effective height from which
@@ -282,64 +281,64 @@ therefore use the curvature-like parameter $$p=\frac{1}{h'}$$ to control
 the uplift, with $p=0$ corresponding to the flat world.
 
 A tangent vector to the profile is obtained by differentiating with
-respect to $s$: $$\left(
-\frac{2h'^3}{(h'^2+s^2)^{3/2}},
-\frac{s(3h'^2+s^2)}{(h'^2+s^2)^{3/2}}
+respect to $u$: $$\left(
+\frac{2h'^3}{(h'^2+u^2)^{3/2}},
+\frac{u(3h'^2+u^2)}{(h'^2+u^2)^{3/2}}
 \right).$$ A corresponding non-unit normal vector is $$\left(
--\frac{s(3h'^2+s^2)}{(h'^2+s^2)^{3/2}},
-\frac{2h'^3}{(h'^2+s^2)^{3/2}}
+-\frac{u(3h'^2+u^2)}{(h'^2+u^2)^{3/2}},
+\frac{2h'^3}{(h'^2+u^2)^{3/2}}
 \right).$$
 
 Interestingly, the profile converges to the vertical line $x'=2h'$ as
-$s\to\infty$. Similarly to the previous two methods, the point $P'$
-corresponding to an original ground distance $s$ must be determined
+$u\to\infty$. Similarly to the previous two methods, the point $P'$
+corresponding to an original ground distance $x$ must be determined
 numerically; see Section @@ref:sec:computational_remarks@@.
 
 The intersection of the angular Tsunami profile with a viewing ray can
 be found analytically up to the solution of a quartic polynomial. Let
 the observer be located at $(0,h)$, let the viewing direction be
 $\mathbf{v}=(v_1,v_2)$, and let $p>0$ denote the uplift parameter.
-Introducing the dimensionless profile parameter $$t=s/h'=p s,$$ the
-angular profile can be written as $$x(t)=\frac{2t}{p\sqrt{1+t^2}},
+Introducing the dimensionless profile parameter $$\bar u=u/h'=p\,u,$$ the
+angular profile can be written as $$x'(\bar u)=\frac{2\bar u}{p\sqrt{1+\bar u^2}},
 \qquad
-z(t)=\frac{1}{p}
+y'(\bar u)=\frac{1}{p}
 \left(
-1-\frac{1-t^2}{\sqrt{1+t^2}}
+1-\frac{1-\bar u^2}{\sqrt{1+\bar u^2}}
 \right).$$
 
-A point $(x,z)$ lies on the viewing ray if the vector from the observer
-to the point is parallel to $\mathbf{v}$. Hence, $$v_1(z-h)-v_2x=0.$$
+A point $(x',y')$ lies on the viewing ray if the vector from the observer
+to the point is parallel to $\mathbf{v}$. Hence, $$v_1(y'-h)-v_2x'=0.$$
 Substituting the angular profile into this equation and multiplying by
-$p\sqrt{1+t^2}$ gives $$v_1(1-hp)\sqrt{1+t^2} =
-v_1(1-t^2)+2v_2t.$$ Squaring both sides eliminates the square root and
-yields the quartic equation $$v_1^2t^4
--4v_1v_2t^3
+$p\sqrt{1+\bar u^2}$ gives $$v_1(1-hp)\sqrt{1+\bar u^2} =
+v_1(1-\bar u^2)+2v_2\bar u.$$ Squaring both sides eliminates the square root and
+yields the quartic equation $$v_1^2\bar u^4
+-4v_1v_2\bar u^3
 +
 \left(
-4v_2^2-2v_1^2-q
-\right)t^2
+4v_2^2-2v_1^2-\omega
+\right)\bar u^2
 +
-4v_1v_2t
+4v_1v_2\bar u
 +
-v_1^2-q
+v_1^2-\omega
 =
-0,$$ where $$q=v_1^2(1-hp)^2.$$
+0,$$ where $$\omega=v_1^2(1-hp)^2.$$
 
 The real non-negative roots of this polynomial provide candidate
-intersections. For each candidate $t$, the corresponding profile
-parameter is $$s=\frac{t}{p}.$$ However, squaring the intersection
+intersections. For each candidate $\bar u$, the corresponding profile
+parameter is $$u=\frac{\bar u}{p}.$$ However, squaring the intersection
 equation may introduce extraneous roots. Each candidate must therefore
 be substituted back into the original unsquared equation,
-$$v_1(1-hp)\sqrt{1+t^2}-v_1(1-t^2)-2v_2t=0.$$ In addition, the candidate
+$$v_1(1-hp)\sqrt{1+\bar u^2}-v_1(1-\bar u^2)-2v_2\bar u=0.$$ In addition, the candidate
 must lie on the forward half-ray. This can be verified by computing
-$$\lambda=\frac{x(t)}{v_1}$$ for $v_1\neq0$ and requiring
+$$\lambda=\frac{x'(\bar u)}{v_1}$$ for $v_1\neq0$ and requiring
 $\lambda\geq0$. If several valid intersections remain, the smallest
 non-negative value of $\lambda$ corresponds to the first point
 encountered along the viewing ray and should normally be selected.
 
 Two limiting cases are handled separately. If $p=0$, the profile reduces
 to the flat world. A downward-pointing ray then intersects it
-at $$s=-\frac{v_1h}{v_2},
+at $$u=-\frac{v_1h}{v_2},
 \qquad v_2<0,$$ whereas a horizontal or upward-pointing ray has no
 finite intersection. If $v_1=0$, the ray is vertical: a
 downward-pointing ray intersects the profile at the origin, while an
@@ -353,33 +352,33 @@ observer.
 The spherical Tsunami transformation maps the flat world onto a
 circular arc. Let $p\geq0$ denote the curvature of the profile and let
 $$r=\frac{1}{p}$$ be the corresponding radius. For $p>0$, the
-transformed profile is parametrized by $$(x',z')=
+transformed profile is parametrized by $$(x',y')=
 \left(
-\frac{\sin(p s)}{p},
-\frac{1-\cos(p s)}{p}
-\right).$$ Equivalently, $$(x',z')
+\frac{\sin(p u)}{p},
+\frac{1-\cos(p u)}{p}
+\right).$$ Equivalently, $$(x',y')
 =
 \left(
-r\sin\frac{s}{r},
-r-r\cos\frac{s}{r}
+r\sin\frac{u}{r},
+r-r\cos\frac{u}{r}
 \right).$$ The profile is therefore an arc of the circle
-$${x'}^2+(z'-r)^2=r^2,$$ whose center is located at $(0,r)$ and which
+$${x'}^2+(y'-r)^2=r^2,$$ whose center is located at $(0,r)$ and which
 passes through the origin. In the limiting case $p\to0$, the circular
-arc converges to the original flat world, $$(x',z')\to(s,0).$$
+arc converges to the original flat world, $$(x',y')\to(u,0).$$
 
 Unlike the preceding transformations, the spherical profile is
 parametrized directly by arc length. Indeed, differentiating with
-respect to $s$ gives the unit tangent vector $$\left(
-\cos(p s),
-\sin(p s)
+respect to $u$ gives the unit tangent vector $$\left(
+\cos(p u),
+\sin(p u)
 \right),$$ whose norm is equal to one. Consequently, the arc length from
-the origin to the point corresponding to parameter $s$ is exactly $s$,
+the origin to the point corresponding to parameter $u$ is exactly $u$,
 and no numerical arc-length reparametrization is required.
 
 A unit normal pointing locally above the transformed ground is $$\left(
--\sin(p s),
-\cos(p s)
-\right).$$ At the origin, where $s=0$, this normal equals $(0,1)$ and
+-\sin(p u),
+\cos(p u)
+\right).$$ At the origin, where $u=0$, this normal equals $(0,1)$ and
 therefore agrees with the upward normal of the original flat world.
 
 The parameter $p$ controls the degree of uplift. As $p$ increases, the
@@ -397,9 +396,9 @@ the ray have direction $$\mathbf{v}=(v_1,v_2).$$ After normalizing
 $\mathbf{v}$, the ray is parametrized as $$\mathbf{r}(t) =
 (0,h)+t(v_1,v_2),
 \qquad
-t\geq0.$$ Substituting $$x=t v_1,
+t\geq0.$$ Substituting its coordinates $$x'=t v_1,
 \qquad
-z=h+t v_2$$ into the circle equation $$x^2+(z-r)^2=r^2$$ gives $$t^2
+y'=h+t v_2$$ into the circle equation $${x'}^2+(y'-r)^2=r^2$$ gives $$t^2
 +
 2v_2(h-r)t
 +
@@ -422,17 +421,17 @@ If $hp>2$, the observer lies outside the circle, and some viewing rays
 may have no forward intersection.
 
 Once the ray parameter $t$ has been found, the intersection coordinates
-are $$x=t v_1,
+are $$x'=t v_1,
 \qquad
-z=h+t v_2.$$ The corresponding central angle of the circular arc is
+y'=h+t v_2.$$ The corresponding central angle of the circular arc is
 $$\theta
 =
-\operatorname{atan2}(x,r-z),$$ and, because the profile is parametrized
-by arc length, the ground parameter is obtained directly as
-$$s=r|\theta|.$$
+\operatorname{atan2}(x',r-y'),$$ and, because the profile is parametrized
+by arc length, the profile parameter is obtained directly as
+$$u=r|\theta|.$$
 
 If $p=0$, the profile reduces to the original flat world. A
-downward-pointing ray then intersects it at $$s=-\frac{v_1h}{v_2},
+downward-pointing ray then intersects it at $$u=-\frac{v_1h}{v_2},
 \qquad v_2<0,$$ whereas a horizontal or upward-pointing ray has no
 finite intersection.
 
@@ -443,7 +442,7 @@ restricted to $$p\in
 \left[
 0,\frac{\pi}{\ensuremath{d_{w}}}
 \right].$$ For a given $p$, the boundary point is evaluated directly
-using the arc-length parameter $s=\ensuremath{d_{w}}$, and its viewing
+using the arc-length parameter $u=\ensuremath{d_{w}}$, and its viewing
 angle from the observer is compared with the desired value $\alpha'_w$.
 Because the boundary angle varies monotonically over the selected
 interval, the required curvature can be determined efficiently using
@@ -470,53 +469,54 @@ store them in lookup tables.
 ## Arc-length parametrization
 
 Let a Tsunami profile be given by a parameterized curve
-$$\mathbf{g'}(t)=\bigl(x(t),z(t)\bigr).$$ Its arc length from the origin
-to the point corresponding to the parameter value $t$ is $$s'(t)=
-\int_0^t
+$$\mathbf{g'}(u)=\bigl(x'(u),y'(u)\bigr).$$ Its arc length from the origin
+to the point corresponding to the parameter value $u$ is $$L(u)=
+\int_0^u
 \left\lVert
-\frac{\mathrm{d}\mathbf{g}'(\tau)}{\mathrm{d}\tau}
+\frac{\mathrm{d}\mathbf{g}'(t)}{\mathrm{d}t}
 \right\rVert
-\,\mathrm{d}\tau
+\,\mathrm{d}t
 =
-\int_0^t
+\int_0^u
 \sqrt{
-\left(\frac{\mathrm{d}x}{\mathrm{d}\tau}\right)^2
+\left(\frac{\mathrm{d}x'}{\mathrm{d}t}\right)^2
 +
-\left(\frac{\mathrm{d}z}{\mathrm{d}\tau}\right)^2
+\left(\frac{\mathrm{d}y'}{\mathrm{d}t}\right)^2
 }
-\,\mathrm{d}\tau.$$ To preserve distances along the ground, a point
-originally located at distance $s$ must be mapped to the point
-$$T(s)=\mathbf{g'}\bigl(t(s)\bigr),$$ where $t(s)$ is the inverse of the
-arc-length function and satisfies $$s'\bigl(t(s)\bigr)=s.$$
+\,\mathrm{d}t.$$ To preserve distances along the ground, a point
+originally located at distance $x$ must be mapped to the point
+$$T(x)=\mathbf{g'}\bigl(L^{-1}(p,x)\bigr),$$ where $L^{-1}(p,\cdot)$ is
+the inverse of the arc-length function for the uplift parameter $p$ and
+therefore satisfies $$L\bigl(L^{-1}(p,x)\bigr)=x.$$
 
 For the spherical transformation, the profile is already parametrized by
 arc length, because the derivative of $\mathbf{g}'$ is equal to 1
-everywhere. Hence, $t(s)=s$ and no numerical inversion is required. For
+everywhere. Hence, $L^{-1}(p,x)=x$ and no numerical inversion is required. For
 the parabolic, hyperbolic, and angular transformations, the profile
 parameter is not generally equal to arc length. Although the
 corresponding arc-length functions may be available analytically or
 through numerical integration, their inverses are not available in a
-convenient closed form. The parameter $t(s)$ must therefore be found
-numerically.
+convenient closed form. The parameter $u=L^{-1}(p,x)$ must therefore be
+found numerically.
 
-A direct approach is to solve $$s'(t)-s=0$$ using a one-dimensional
-root-finding method such as bisection. Since $s'(t)$ is monotonically
+A direct approach is to solve $$L(u)-x=0$$ using a one-dimensional
+root-finding method such as bisection. Since $L(u)$ is monotonically
 increasing for the considered profiles, the solution is unique and
 bisection is robust. However, performing this computation separately for
 every point during rendering would be prohibitively expensive.
 
 Instead, we sample the profile parameter at values
-$$t_0,t_1,\ldots,t_n$$ and compute the corresponding cumulative arc
-lengths $$s'_i=s'(t_i).$$ The inverse mapping $t(s)$ is then
-approximated by interpolation between the pairs $(s'_i,t_i)$. The
-transformed coordinates of a ground point at distance $s$ are evaluated
-as $$T(s)
+$$u_0,u_1,\ldots,u_n$$ and compute the corresponding cumulative arc
+lengths $$L_i=L(u_i).$$ The inverse mapping $L^{-1}(p,\cdot)$ is then
+approximated by interpolation between the pairs $(L_i,u_i)$. The
+transformed coordinates of a ground point at distance $x$ are evaluated
+as $$T(x)
 \approx
-\mathbf{g'}\bigl(\widetilde{t}(s)\bigr),$$ where $\widetilde{t}$ denotes
+\mathbf{g'}\bigl(\widetilde{u}(x)\bigr),$$ where $\widetilde{u}$ denotes
 the interpolated inverse arc-length function.
 
 The accuracy of this approximation depends on the number and
-distribution of samples. Uniform sampling in $t$ is sufficient for
+distribution of samples. Uniform sampling in $u$ is sufficient for
 moderately curved profiles, whereas adaptive sampling may be beneficial
 when curvature changes rapidly. In practice, a dense one-dimensional
 table provides a good compromise between accuracy, memory consumption,
@@ -596,12 +596,12 @@ numerical stability and performance.
 Even when an analytic ray--profile intersection is available, evaluating
 it independently for every image pixel can be expensive. Moreover, the
 intersection is usually expressed in terms of the native profile
-parameter $t$, whereas rendering requires the original ground distance
-$s$, represented by arc length.
+parameter $u$, whereas rendering requires the original ground distance
+$x$, represented by arc length.
 
 For a fixed observer height and uplift parameter, we therefore
 precompute a lookup table relating the viewing angle $\alpha$ to the
-visible ground distance $s$. Let $$\alpha_i
+visible ground distance $x$. Let $$\alpha_i
 =
 \frac{i}{n-1}\alpha_{\max},
 \qquad
@@ -611,22 +611,22 @@ $\alpha_i$, we define $$\mathbf{v}_i
 \bigl(
 \sin\alpha_i,
 -\cos\alpha_i
-\bigr)$$ and compute the corresponding profile parameter $$t_i
+\bigr)$$ and compute the corresponding profile parameter $$u_i
 =
-t_{\mathrm{seen}}(\mathbf{v}_i,h).$$ The original ground distance is
-then $$s_i=s'(t_i).$$
+u_{\mathrm{seen}}(\mathbf{v}_i,h).$$ The original ground distance is
+then $$x_i=L(u_i).$$
 
 This produces two arrays, $$(\alpha_0,\ldots,\alpha_{n-1})
 \quad\text{and}\quad
-(s_0,\ldots,s_{n-1}),$$ which define the mapping $$\alpha\mapsto d.$$
+(x_0,\ldots,x_{n-1}),$$ which define the mapping $$\alpha\mapsto x.$$
 During rendering, the distance visible at an arbitrary angle is obtained
-by one-dimensional interpolation: $$d(\alpha)
+by one-dimensional interpolation: $$x(\alpha)
 \approx
 \operatorname{interp}
 \bigl(
 \alpha;
 {\alpha_i},
-{d_i}
+{x_i}
 \bigr).$$
 
 This approach is particularly effective because all pixels in a
@@ -654,9 +654,9 @@ cached and reused until one of these values changes.
 
 Typical precomputed quantities include:
 
-- the inverse arc-length mapping $t(s)$;
+- the inverse arc-length mapping $L^{-1}(p,x)$;
 
-- the viewing-angle-to-distance mapping $\alpha\mapsto s$;
+- the viewing-angle-to-distance mapping $\alpha\mapsto x$;
 
 - the parameter values $p_i$ corresponding to prescribed boundary angles
   $\alpha'_{w,i}$;
@@ -671,9 +671,9 @@ parametrization as well.
 
 For animations and systematic comparisons, the lookup tables may be
 precomputed for all discrete uplift levels and stored in files. A
-two-dimensional table can then represent $$s_{ij}
+two-dimensional table can then represent $$x_{ij}
 =
-s(\alpha_j;p_i),$$ where rows correspond to uplift levels and columns
+x(\alpha_j;p_i),$$ where rows correspond to uplift levels and columns
 correspond to viewing angles. Such a table supports efficient generation
 of animations, coverage plots, and the color-strip evolution shown in
 Figure @@ref:evolution@@.
@@ -710,17 +710,17 @@ a single vertical plane. To apply them to a two-dimensional ground
 surface, the one-dimensional profile must be extended over the
 horizontal plane.
 
-Let $$T_1(s)=\bigl(x'(s),z'(s)\bigr),
-\qquad s\geq0,$$ denote one of the one-dimensional Tsunami
-transformations. The value $s$ represents the original ground distance,
-$x'(s)$ is the corresponding horizontal coordinate after uplifting, and
-$z'(s)$ is the resulting height. If arc length is preserved, the
+Let $$T_1(x)=\bigl(x'(x),y'(x)\bigr),
+\qquad x\geq0,$$ denote one of the one-dimensional Tsunami
+transformations. The value $x$ represents the original ground distance,
+$x'(x)$ is the corresponding horizontal coordinate after uplifting, and
+$y'(x)$ is the resulting height. If arc length is preserved, the
 distance measured along the transformed profile from the origin to
-$T_1(s)$ remains equal to $s$.
+$T_1(x)$ remains equal to $x$.
 
-The original ground is represented by points $$P=(x,y,0),$$ and the
+The original ground is represented by points $$P=(x,0,z),$$ and the
 observer is located above the origin. Let
-$$\mathbf{u}=(u_x,u_y)=(\cos\ensuremath{\phi},\sin\ensuremath{\phi})$$
+$$\mathbf{u}=(u_x,u_z)=(\cos\ensuremath{\phi},\sin\ensuremath{\phi})$$
 be the horizontal unit vector corresponding to the observer's viewing
 direction. Extending $T_1$ to the plane is not unique, because a
 two-dimensional point may be associated either with its radial distance
@@ -742,15 +742,15 @@ differ in how this profile is propagated laterally.
 
 The most direct two-dimensional extension is obtained by applying the
 one-dimensional transformation radially around the origin. For a ground
-point $$P=(x,y,0),$$ let $$r=\sqrt{x^2+y^2}$$ be its distance from the
+point $$P=(x,0,z),$$ let $$r=\sqrt{x^2+z^2}$$ be its distance from the
 origin and let $$\mathbf{e}_r=
-\frac{1}{r}(x,y)$$ be its horizontal radial direction for $r>0$. The
+\frac{1}{r}(x,z)$$ be its horizontal radial direction for $r>0$. The
 radial Tsunami transformation is then defined by
-$$T_{\mathrm{rad}}(x,y)=
+$$T_{\mathrm{rad}}(x,z)=
 \left(
 x'(r)\frac{x}{r},
-x'(r)\frac{y}{r},
-z'(r)
+y'(r),
+x'(r)\frac{z}{r}
 \right).$$ The origin is mapped to itself.
 
 Thus, every vertical half-plane passing through the vertical axis
@@ -796,25 +796,25 @@ viewing direction. Instead of rotating this profile around the origin,
 we replicate it in parallel vertical planes.
 
 Let $\mathbf{u}$ be the horizontal viewing direction and let
-$$\mathbf{u}_{\perp}=(-u_y,u_x)$$ be a perpendicular horizontal unit
-vector. Every ground point can be decomposed as $$(x,y)=
-s\,\mathbf{u}
+$$\mathbf{u}_{\perp}=(-u_z,u_x)$$ be a perpendicular horizontal unit
+vector. Every ground point can be decomposed as $$(x,z)=
+x_{\parallel}\,\mathbf{u}
 +
-q\,\mathbf{u}_{\perp},$$ where $$s=(x,y)\cdot\mathbf{u},
+x_{\perp}\,\mathbf{u}_{\perp},$$ where $$x_{\parallel}=(x,z)\cdot\mathbf{u},
 \qquad
-q=(x,y)\cdot\mathbf{u}_{\perp}.$$ The directional transformation applies
-the one-dimensional Tsunami only to the forward coordinate $s$, while
-leaving the lateral coordinate $q$ unchanged: $$T_{\mathrm{dir}}(x,y)=
-x'(s)\mathbf{u}
+x_{\perp}=(x,z)\cdot\mathbf{u}_{\perp}.$$ The directional transformation applies
+the one-dimensional Tsunami only to the forward coordinate $x_{\parallel}$, while
+leaving the lateral coordinate $x_{\perp}$ unchanged: $$T_{\mathrm{dir}}(x,z)=
+x'(x_{\parallel})\mathbf{u}
 +
-q\mathbf{u}_{\perp}
+x_{\perp}\mathbf{u}_{\perp}
 +
-z'(s)\mathbf{e}_z,$$ where $\mathbf{e}_z=(0,0,1).$ In Cartesian
-coordinates, this can be written as $$T_{\mathrm{dir}}(x,y)=
+y'(x_{\parallel})\mathbf{e}_y,$$ where $\mathbf{e}_y=(0,1,0).$ In Cartesian
+coordinates, this can be written as $$T_{\mathrm{dir}}(x,z)=
 \left(
-x'(s)u_x-qu_y,\,
-x'(s)u_y+qu_x,\,
-z'(s)
+x'(x_{\parallel})u_x-x_{\perp}u_z,\,
+y'(x_{\parallel}),\,
+x'(x_{\parallel})u_z+x_{\perp}u_x
 \right).$$
 
 The resulting surface is cylindrical rather than rotationally symmetric.
@@ -863,24 +863,24 @@ behaviors. Rather than defining another explicit uplifted surface, we
 combine the ground-distance fields obtained from the radial and
 directional constructions.
 
-Let $$s_{\mathrm{rad}}(\mathbf{v})$$ and
-$$s_{\mathrm{dir}}(\mathbf{v})$$ denote the flat world distances
+Let $$x_{\mathrm{rad}}(\mathbf{v})$$ and
+$$x_{\mathrm{dir}}(\mathbf{v})$$ denote the flat world distances
 visible along a camera ray with direction $\mathbf{v}$ under the radial
 and directional transformations, respectively. For a mixing parameter
 $$\mu\in[0,1],$$ the mixed distance is defined using reciprocal
-interpolation: $$\frac{1}{s_{\mathrm{mix}}}=
-\frac{1-\mu}{s_{\mathrm{dir}}}
+interpolation: $$\frac{1}{x_{\mathrm{mix}}}=
+\frac{1-\mu}{x_{\mathrm{dir}}}
 +
-\frac{\mu}{s_{\mathrm{rad}}}.$$ Equivalently, $$s_{\mathrm{mix}}=
+\frac{\mu}{x_{\mathrm{rad}}}.$$ Equivalently, $$x_{\mathrm{mix}}=
 \left(
-\frac{1-\mu}{s_{\mathrm{dir}}}
+\frac{1-\mu}{x_{\mathrm{dir}}}
 +
-\frac{\mu}{s_{\mathrm{rad}}}
+\frac{\mu}{x_{\mathrm{rad}}}
 \right)^{-1}.$$
 
 The limiting values recover the original methods:
-$$s_{\mathrm{mix}}=s_{\mathrm{dir}}
-\quad\text{for }\mu=0,$$ and $$s_{\mathrm{mix}}=s_{\mathrm{rad}}
+$$x_{\mathrm{mix}}=x_{\mathrm{dir}}
+\quad\text{for }\mu=0,$$ and $$x_{\mathrm{mix}}=x_{\mathrm{rad}}
 \quad\text{for }\mu=1.$$ Intermediate values gradually introduce radial
 behavior into the directional distance field.
 
@@ -935,15 +935,15 @@ Let the original modelled world occupy the cylindrical domain
 $$\mathcal{W}=
 \left\{
 (x,y,z)\in\mathbb{R}^3:
-x^2+y^2\leq \ensuremath{d_{w}}^2\,;
-h_{\min}\leq z\leq h_{\max}
+x^2+z^2\leq \ensuremath{d_{w}}^2\,;
+h_{\min}\leq y\leq h_{\max}
 \right\},$$ where $$h_w=h_{\max}-h_{\min}$$ is the total height of the
 modelled world.
 
 We introduce a horizontal reference plane, called the *zero plane*, at
 height $h_0$, where $$h_{\min}\leq h_0\leq h_{\max}.$$ For convenience,
 the vertical coordinate may be shifted so that $h_0=0$. A point
-$$P=(x,y,h_P)$$ is then represented by its position $(x,y)$ in the zero
+$$P=(x,h_P,z)$$ is then represented by its position $(x,z)$ in the zero
 plane and its signed height $$q=h_P-h_0.$$ Positive values of $q$
 correspond to points above the zero plane, while negative values
 correspond to points below it.
@@ -957,17 +957,17 @@ whereas layers on the opposite side are expanded.
 
 ## Transformation of the zero plane
 
-Let $$\mathbf{S}(x,y)=
+Let $$\mathbf{S}(x,z)=
 \bigl(
-S_x(x,y),
-S_y(x,y),
-S_z(x,y)
-\bigr)$$ denote the transformed position of the point $(x,y,h_0)$ of the
+S_x(x,z),
+S_y(x,z),
+S_z(x,z)
+\bigr)$$ denote the transformed position of the point $(x,h_0,z)$ of the
 zero plane. The transformed zero plane is therefore the surface
 $$\mathcal{S}=
 \left\{
-\mathbf{S}(x,y):
-x^2+y^2\leq \ensuremath{d_{w}}^2
+\mathbf{S}(x,z):
+x^2+z^2\leq \ensuremath{d_{w}}^2
 \right\}.$$
 
 The surface $\mathcal{S}$ is constructed from one of the one-dimensional
@@ -978,17 +978,17 @@ extensions, which are described in
 Sections @@ref:sec:directional_extension@@
 and @@ref:sec:radial_extension@@, respectively.
 
-Let $$\mathbf{n}(x,y)$$ be a consistently oriented unit normal to
+Let $$\mathbf{n}(x,z)$$ be a consistently oriented unit normal to
 $\mathcal{S}$. The three-dimensional Tsunami transformation of a point
-$$P=(x,y,h_P)$$ is defined by $$T_3(P)=
-\mathbf{S}(x,y)
+$$P=(x,h_P,z)$$ is defined by $$T_3(P)=
+\mathbf{S}(x,z)
 +
-g(x,y,q)\,\mathbf{n}(x,y),
+g(x,z,q)\,\mathbf{n}(x,z),
 \qquad
 q=h_P-h_0,$$ where $g$ determines how signed height is mapped after the
 zero plane has been transformed.
 
-The simplest choice is $$g(x,y,q)=q.$$ In this case, the signed distance
+The simplest choice is $$g(x,z,q)=q.$$ In this case, the signed distance
 from the zero plane is preserved. Object heights are measured along the
 normal of the transformed reference surface, and initially vertical
 objects become locally perpendicular to the uplifted ground. This
@@ -1006,22 +1006,22 @@ the surface.
 ## Deformation of normal layers
 
 The local deformation of the world can be described using the principal
-curvatures of the transformed zero plane. Let $$\kappa_1(x,y),
+curvatures of the transformed zero plane. Let $$\kappa_1(x,z),
 \qquad
-\kappa_2(x,y)$$ denote its two signed principal curvatures, and let
-$$\mathbf{e}_1(x,y),
+\kappa_2(x,z)$$ denote its two signed principal curvatures, and let
+$$\mathbf{e}_1(x,z),
 \qquad
-\mathbf{e}_2(x,y)$$ be the corresponding principal directions.
+\mathbf{e}_2(x,z)$$ be the corresponding principal directions.
 
-For the rigid-height transformation $$T_3(x,y,q)=
-\mathbf{S}(x,y)+q\mathbf{n}(x,y),$$ the local scale factors at normal
-distance $q$ are $$\sigma_1(x,y,q)=1-q\kappa_1(x,y)$$ and
-$$\sigma_2(x,y,q)=1-q\kappa_2(x,y)$$ in the two principal directions.
+For the rigid-height transformation $$T_3(x,z,q)=
+\mathbf{S}(x,z)+q\mathbf{n}(x,z),$$ the local scale factors at normal
+distance $q$ are $$\sigma_1(x,z,q)=1-q\kappa_1(x,z)$$ and
+$$\sigma_2(x,z,q)=1-q\kappa_2(x,z)$$ in the two principal directions.
 The scale factor in the normal direction remains equal to one.
 
-Thus, a small surface element is changed by the factor $$J(x,y,q)=
-\left(1-q\kappa_1(x,y)\right)
-\left(1-q\kappa_2(x,y)\right).$$ This quantity is also the local
+Thus, a small surface element is changed by the factor $$J(x,z,q)=
+\left(1-q\kappa_1(x,z)\right)
+\left(1-q\kappa_2(x,z)\right).$$ This quantity is also the local
 volume-change factor of the three-dimensional normal-coordinate
 transformation.
 
@@ -1042,11 +1042,11 @@ admissibility condition is $$|q|\,\max\left(
 \qquad
 0<\eta<1,$$ where $\eta$ is a safety factor. In our visualisations, we
 use $\eta=0.9$. The corresponding local safe height is
-$$h_{\mathrm{safe}}(x,y) =
+$$h_{\mathrm{safe}}(x,z) =
 \frac{\eta}{
 \max\left(
-|\kappa_1(x,y)|,
-|\kappa_2(x,y)|
+|\kappa_1(x,z)|,
+|\kappa_2(x,z)|
 \right)
 },$$ with $h_{\mathrm{safe}}=\infty$ when both principal curvatures
 vanish.
@@ -1064,26 +1064,26 @@ surface.
 
 In the directional extension, the one-dimensional Tsunami profile is
 applied only in a selected horizontal direction. Let
-$$\mathbf{v}=(v_x,v_y)$$ be a unit vector in the horizontal plane,
+$$\mathbf{v}=(v_x,v_z)$$ be a unit vector in the horizontal plane,
 typically corresponding to the viewing azimuth, and let
-$$\mathbf{u}=(-v_y,v_x)$$ be the perpendicular horizontal direction.
+$$\mathbf{u}=(-v_z,v_x)$$ be the perpendicular horizontal direction.
 
-A point of the zero plane can be written as $$(x,y)=
-s\mathbf{v}+r\mathbf{u},$$ where $$s=xv_x+yv_y,
+A point of the zero plane can be written as $$(x,z)=
+x_{\parallel}\mathbf{v}+x_{\perp}\mathbf{u},$$ where $$x_{\parallel}=xv_x+zv_z,
 \qquad
-r=-xv_y+yv_x.$$ If the one-dimensional Tsunami profile maps $s$ to
-$$\bigl(X(s),Z(s)\bigr),$$ the transformed zero plane is
-$$\mathbf{S}_{\mathrm{dir}}(s,r)=
-X(s)\mathbf{v}
+x_{\perp}=-xv_z+zv_x.$$ If the one-dimensional Tsunami profile maps $x_{\parallel}$ to
+$$\bigl(x'(x_{\parallel}),y'(x_{\parallel})\bigr),$$ the transformed zero plane is
+$$\mathbf{S}_{\mathrm{dir}}(x_{\parallel},x_{\perp})=
+x'(x_{\parallel})\mathbf{v}
 +
-r\mathbf{u}
+x_{\perp}\mathbf{u}
 +
-\bigl(h_0+Z(s)\bigr)\mathbf{e}_z.$$
+\bigl(h_0+y'(x_{\parallel})\bigr)\mathbf{e}_y.$$
 
 This surface is a generalized cylinder obtained by extruding the
 transformed profile in the direction $\mathbf{u}$. One principal
 curvature is therefore the curvature of the Tsunami profile,
-$$\kappa_{\mathrm{profile}}(s),$$ while the second principal curvature
+$$\kappa_{\mathrm{profile}}(x_{\parallel}),$$ while the second principal curvature
 is zero: $$\kappa_1=\kappa_{\mathrm{profile}},
 \qquad
 \kappa_2=0.$$
@@ -1099,45 +1099,46 @@ curvature remains small.
 ## Radial extension {#sec:radial_extension}
 
 In the radial extension, the one-dimensional profile is rotated around
-the vertical axis through the observer. Let $$\rho=\sqrt{x^2+y^2},
+the vertical axis through the observer. Let $$\rho=\sqrt{x^2+z^2},
 \qquad
-\varphi=\operatorname{atan2}(y,x),$$ and let
-$$\bigl(R(\rho),Z(\rho)\bigr)$$ be the transformed one-dimensional
+\varphi=\operatorname{atan2}(z,x),$$ and let
+$$\bigl(R(\rho),Y(\rho)\bigr)$$ be the transformed one-dimensional
 profile. The zero plane is mapped to the surface of revolution
 $$\mathbf{S}_{\mathrm{rad}}(\rho,\varphi)
 =
 \left(
 R(\rho)\cos\varphi,\,
-R(\rho)\sin\varphi,\,
-h_0+Z(\rho)
+h_0+Y(\rho),\,
+R(\rho)\sin\varphi
 \right).$$
 
 Unlike the directional surface, the radial surface generally has two
 non-zero principal curvatures. The meridional curvature is determined by
 the bending of the one-dimensional profile. For an arbitrary profile
-parameter $t$, it is $$\kappa_{\mathrm{mer}}
+parameter $u$, it is $$\kappa_{\mathrm{mer}}
 =
 \frac{
-R'(t)Z''(t)-Z'(t)R''(t)
+R'(u)Y''(u)-Y'(u)R''(u)
 }{
-\left(R'(t)^2+Z'(t)^2\right)^{3/2}
+\left(R'(u)^2+Y'(u)^2\right)^{3/2}
 }.$$
 
 The second, azimuthal curvature is introduced by rotating the profile
 around the vertical axis: $$\kappa_{\mathrm{azi}}
 =
 \frac{
-Z'(t)
+Y'(u)
 }{
-R(t)\sqrt{R'(t)^2+Z'(t)^2}
+R(u)\sqrt{R'(u)^2+Y'(u)^2}
 },$$ up to the chosen orientation of the surface normal.
 
-If the profile is parametrized by arc length $s$, these expressions
-simplify to $$\kappa_{\mathrm{mer}}
+If the profile is parametrized by arc length, so that the parameter is
+the original radial distance $\rho$, these expressions simplify to
+$$\kappa_{\mathrm{mer}}
 =
-R'(s)Z''(s)-Z'(s)R''(s)$$ and $$\kappa_{\mathrm{azi}}
+R'(\rho)Y''(\rho)-Y'(\rho)R''(\rho)$$ and $$\kappa_{\mathrm{azi}}
 =
-\frac{Z'(s)}{R(s)}.$$
+\frac{Y'(\rho)}{R(\rho)}.$$
 
 The radial extension can therefore compress objects in both horizontal
 principal directions. Its admissible world height may be constrained not
@@ -1153,14 +1154,14 @@ center.
 ## Height transformation models
 
 The rigid-height model preserves normal distances:
-$$g_{\mathrm{rigid}}(x,y,q)=q.$$ Its main advantage is its clear
+$$g_{\mathrm{rigid}}(x,z,q)=q.$$ Its main advantage is its clear
 geometric interpretation. Object heights are preserved, and objects
 remain normal to the transformed zero plane. Its disadvantage is that
 the transformation may become singular when the world height approaches
 a local curvature radius.
 
 A simple alternative is the globally compressed model,
-$$g_{\mathrm{global}}(x,y,q)=c q,
+$$g_{\mathrm{global}}(x,z,q)=c q,
 \qquad
 0<c\leq1.$$ A sufficiently small value of $c$ reduces the normal range
 and can prevent intersections of neighbouring normal layers. However, it
@@ -1169,18 +1170,18 @@ compression is necessary.
 
 A more flexible alternative is a curvature-adaptive model. In this case,
 the height mapping depends on the local principal curvatures:
-$$g_{\mathrm{adaptive}}(x,y,q)
+$$g_{\mathrm{adaptive}}(x,z,q)
 =
-\frac{\eta}{K(x,y)}
+\frac{\eta}{K(x,z)}
 \tanh\left(
-\frac{K(x,y)q}{\eta}
-\right),$$ where $$K(x,y)
+\frac{K(x,z)q}{\eta}
+\right),$$ where $$K(x,z)
 =
 \max\left(
-|\kappa_1(x,y)|,
-|\kappa_2(x,y)|
+|\kappa_1(x,z)|,
+|\kappa_2(x,z)|
 \right).$$ For locally flat regions, the limiting value is
-$$g_{\mathrm{adaptive}}(x,y,q)=q.$$ For large values of $|q|K$, the
+$$g_{\mathrm{adaptive}}(x,z,q)=q.$$ For large values of $|q|K$, the
 transformed height approaches the safe normal-distance limit $\eta/K$.
 Thus, low objects and objects in weakly curved regions are affected only
 slightly, whereas tall objects in strongly curved regions are compressed
@@ -1199,35 +1200,35 @@ important.
 
 For interaction with a transformed scene, a selected point must be
 mapped back to the flat world. Consider a transformed point
-$P'=(x_{P'},z_{P'})$ in a radial cross-section and its corresponding
-point $Q'=(u_{Q'},a u_{Q'}^2)$ on the parabolic zero plane, where $a>0$
+$P'=(x_{P'},y_{P'})$ in a radial cross-section and its corresponding
+point $Q'=(u_{Q'},p\,u_{Q'}^2)$ on the parabolic zero plane, where $p>0$
 is the parabolic uplift parameter. Requiring $P'-Q'$ to lie along the
 normal of the parabola gives
-$$2a^2u_{Q'}^3+(1-2az_{P'})u_{Q'}-x_{P'}=0.$$
+$$2p^2u_{Q'}^3+(1-2py_{P'})u_{Q'}-x_{P'}=0.$$
 
-Dividing by $2a^2$ yields the depressed cubic
-$$u_{Q'}^3+b u_{Q'}+c=0,$$
+Dividing by $2p^2$ yields the depressed cubic
+$$u_{Q'}^3+\beta u_{Q'}+\gamma=0,$$
 where
-$$b=\frac{1-2az_{P'}}{2a^2},\qquad
-c=-\frac{x_{P'}}{2a^2}.$$
+$$\beta=\frac{1-2py_{P'}}{2p^2},\qquad
+\gamma=-\frac{x_{P'}}{2p^2}.$$
 Its discriminant is
-$$\Delta=\left(\frac{c}{2}\right)^2+
-\left(\frac{b}{3}\right)^3
-=\frac{x_{P'}^2}{16a^4}+
-\frac{(1-2az_{P'})^3}{216a^6}.$$
+$$\Delta=\left(\frac{\gamma}{2}\right)^2+
+\left(\frac{\beta}{3}\right)^3
+=\frac{x_{P'}^2}{16p^4}+
+\frac{(1-2py_{P'})^3}{216p^6}.$$
 
 For $\Delta\geq0$, Cardano's formula gives the real solution
 $$u_{Q'}=
-\sqrt[3]{\frac{x_{P'}}{4a^2}+\sqrt{\Delta}}+
-\sqrt[3]{\frac{x_{P'}}{4a^2}-\sqrt{\Delta}},$$
+\sqrt[3]{\frac{x_{P'}}{4p^2}+\sqrt{\Delta}}+
+\sqrt[3]{\frac{x_{P'}}{4p^2}-\sqrt{\Delta}},$$
 where $\sqrt[3]{\cdot}$ denotes the real cube root.
 
 When $\Delta<0$, the cubic has three real algebraic roots. To avoid
 complex intermediate values, they can be evaluated as
-$$u_k=2\sqrt{-\frac{b}{3}}
+$$u_k=2\sqrt{-\frac{\beta}{3}}
 \cos\left[
 \frac{1}{3}\arccos\left(
-\frac{3c}{2b}\sqrt{-\frac{3}{b}}
+\frac{3\gamma}{2\beta}\sqrt{-\frac{3}{\beta}}
 \right)-\frac{2\pi k}{3}
 \right],\qquad k\in\{0,1,2\}.$$
 Among the algebraic roots, we retain the real non-negative solution in

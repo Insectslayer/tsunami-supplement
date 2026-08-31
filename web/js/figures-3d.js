@@ -461,7 +461,7 @@
 
     plot.setDomain(0, radius, 0, maxSafe);
     plot.axes({
-      xLabel: 'ground distance s  [m]',
+      xLabel: 'ground distance x  [m]',
       yLabel: 'height  [m]',
     });
 

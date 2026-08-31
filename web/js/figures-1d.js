@@ -408,7 +408,7 @@
           ];
         });
         return {
-          columns: ['Profile', 'p', "x′(d_w) [m]", "z′(d_w) [m]", 'curvature ×10⁻³ [1/m]'],
+          columns: ['Profile', 'p', "x′(d_w) [m]", "y′(d_w) [m]", 'curvature ×10⁻³ [1/m]'],
           rows,
         };
       },
@@ -420,7 +420,7 @@
     const profileModel = model(name);
 
     plot.setDomain(-40, radius + 40, -60, radius + 60);
-    plot.axes({ xLabel: 'x′  [m]', yLabel: 'z′  [m]' });
+    plot.axes({ xLabel: 'x′  [m]', yLabel: 'y′  [m]' });
 
     const theme = plot.theme;
     const color = seriesColor(plot, name);
@@ -483,9 +483,9 @@
     if (!best || best.distance > radius * 0.09) return null;
     return (
       `<div class="tip-title">${name}</div>` +
-      `<div class="tip-row"><span>ground distance s</span><strong>${best.d.toFixed(0)} m</strong></div>` +
+      `<div class="tip-row"><span>ground distance x</span><strong>${best.d.toFixed(0)} m</strong></div>` +
       `<div class="tip-row"><span>x′</span><strong>${best.x.toFixed(1)} m</strong></div>` +
-      `<div class="tip-row"><span>z′</span><strong>${best.z.toFixed(1)} m</strong></div>`
+      `<div class="tip-row"><span>y′</span><strong>${best.z.toFixed(1)} m</strong></div>`
     );
   }
 
@@ -570,7 +570,7 @@
     const padX = (maxX - minX) * 0.08;
     const padY = (maxY - minY) * 0.08;
     plot.setDomain(minX - padX, maxX + padX, minY - padY, maxY + padY);
-    plot.axes({ xLabel: 'x′  [m]', yLabel: 'z′  [m]' });
+    plot.axes({ xLabel: 'x′  [m]', yLabel: 'y′  [m]' });
 
     plot.clip(() => {
       drawGroundTiles(plot, PARAMS, { from: 0, to: radius, width: 4 });
@@ -683,7 +683,7 @@
           ]);
         }
         return {
-          columns: [`α (${context.state.profile})`, 'visible ground distance s [m]'],
+          columns: [`α (${context.state.profile})`, 'visible ground distance x [m]'],
           rows,
         };
       },
@@ -698,7 +698,7 @@
     plot.setDomain(0, 180, 0, radius * 1.35);
     plot.axes({
       xLabel: 'viewing angle α  [deg]',
-      yLabel: 'ground distance s  [m]',
+      yLabel: 'ground distance x  [m]',
       xTicks: [0, 45, 90, 135, 180],
     });
 
@@ -812,7 +812,7 @@
       ],
       caption:
         'distance from the observer to a surface point, after uplift minus before, as a function ' +
-        'of the original ground distance s.',
+        'of the original ground distance x.',
     });
 
   function distanceChangeCurve(profile, mode, h, radius, samples = 150) {
@@ -848,7 +848,7 @@
 
     plot.setDomain(0, radius, lower, Math.abs(lower) * 0.06);
     plot.axes({
-      xLabel: 'original ground distance s  [m]',
+      xLabel: 'original ground distance x  [m]',
       yLabel: mode === 'relative' ? 'relative change' : 'change  [m]',
       formatY: mode === 'relative' ? (value) => value.toFixed(2) : undefined,
     });

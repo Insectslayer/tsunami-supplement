@@ -6,19 +6,19 @@
  * profile, with the two stages of the map that the script exposes as sliders
  * exposed here as sliders too.
  *
- * A scene point is a pair (s, q) -- distance along the flat ground, height
+ * A scene point is a pair (x, q) -- distance along the flat ground, height
  * above it -- and reaches the uplifted world as
  *
- *     t   = (1 - a) s + a t(s)                    arc-length slider a
- *     dir = normalize((1 - w) e_z + w n(t))       normal slider w
- *     P'  = g'(t) + q dir
+ *     u   = (1 - arc) x + arc * L^-1(p, x)        arc-length slider
+ *     dir = normalize((1 - nrm) e_y + nrm n(u))   normal slider
+ *     P'  = g'(u) + q dir
  *
- * At a = 1 the ground keeps its length and only bends, which is requirement (2)
- * of the paper; at a = 0 the distance is handed to the profile as its own
- * parameter and the ground stretches as well. At w = 1 object heights follow
- * the profile normal, which is the rigid-height model T_3 = S + q n of the
- * normal-layer section; at w = 0 they stay vertical while their feet ride the
- * curve.
+ * With the arc-length slider at 1 the ground keeps its length and only bends,
+ * which is requirement (2) of the appendix; at 0 the distance is handed to the
+ * profile as its own parameter and the ground stretches as well. With the
+ * normal slider at 1 object heights follow the profile normal, which is the
+ * rigid-height model T_3 = S + q n of the normal-layer section; at 0 they stay
+ * vertical while their feet ride the curve.
  *
  * The uplift itself is not a local slider: it is the global alpha'_w, so this
  * figure bends in step with every other figure on the page.
@@ -127,7 +127,7 @@
       return this;
     }
 
-    /** Ground distance to profile parameter, blended by the arc-length slider. */
+    /** Flat distance x to profile parameter u, blended by the arc-length slider. */
     distanceToT(s) {
       if (this.arcW <= 0) return s;
       if (this.arcW >= 1) return this.profile.sToT(s);
@@ -145,7 +145,7 @@
       return [dx / length, dz / length];
     }
 
-    /** A flat-world (s, q) pair mapped into the uplifted world. */
+    /** A flat-world (x, q) pair mapped into the uplifted world. */
     mapPoint(s, q) {
       const t = this.distanceToT(s);
       const [x, z] = this.profile.tToXY(t);
@@ -170,7 +170,7 @@
 
     /**
      * The forward map sampled along the ground, tabulated against the flat
-     * distance s rather than the native parameter t, so the inversion returns s
+     * distance x rather than the native parameter u, so the inversion returns x
      * directly whatever the arc-length slider is doing.
      */
     table() {
@@ -198,10 +198,10 @@
     }
 
     /**
-     * Pulls a point of the uplifted world back to a flat (s, q) pair.
+     * Pulls a point of the uplifted world back to a flat (x, q) pair.
      *
      * P' came from the ground point whose offset line passes through it, that
-     * is, from the s where P' - g'(t(s)) is parallel to the offset direction.
+     * is, from the x where P' - g'(u(x)) is parallel to the offset direction.
      * The cross product of the two changes sign there, so the roots are found
      * by scanning the tabulated ground for sign changes.
      *
@@ -337,10 +337,10 @@
         { label: 'cast ray in the flat world', color: 'var(--status-critical)', kind: 'dashed' },
       ],
       caption:
-        'the construction of animate_sideview.py, live. Arc length a = 1 is requirement (2) of the paper, ' +
-        'a = 0 feeds the ground distance to the profile as its own parameter; normal w = 1 is the ' +
-        'rigid-height model, w = 0 keeps objects upright. The ray is cast in the uplifted world; where it ' +
-        'meets the ground, its pre-image ends on the ground point the observer is actually looking at.',
+        'the construction of animate_sideview.py, live. Arc length at 1 is requirement (2) of the ' +
+        'appendix; at 0 the ground distance is fed to the profile as its own parameter u. Normals at 1 ' +
+        'is the rigid-height model, at 0 objects stay upright. The ray is cast in the uplifted world; ' +
+        'where it meets the ground, its pre-image ends on the ground point the observer is looking at.',
     });
 
     attachRayHandles(figure);
@@ -413,7 +413,7 @@
     const bent = context.state.alphaW > global.TsunamiModel.LEVEL_MIN + 1e-6;
 
     plot.setDomain(DOMAIN_X[0], DOMAIN_X[1], DOMAIN_Y[0], DOMAIN_Y[1]);
-    plot.axes({ xLabel: 'x′  [m]', yLabel: 'z′  [m]' });
+    plot.axes({ xLabel: 'x′  [m]', yLabel: 'y′  [m]' });
 
     const ground = c.groundPoints();
     const hit = c.rayHit(local.rayStart, local.rayEnd, ground);

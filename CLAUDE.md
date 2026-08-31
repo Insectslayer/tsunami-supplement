@@ -133,6 +133,21 @@ compared at the same amount of spreading; `ProfileModel` precomputes the α′_w
 
 `load_or_compute_angle_params(tsunami, h=, angles_rad=, d=)` is the public entry point (used by `study_sideview.py`). It writes `tsunami_angle_params_<Method>_<world_size>.npz` containing `params` plus a `metadata_json` blob (cache version, method name, world size, `keep_lengths`, `h`, `d`, the full angle array, method-specific config such as hyperbolic `a`). Any mismatch silently recomputes. Bump `CACHE_VERSION` when the meaning of `params` changes; extend `_method_configuration` when a new subclass gains a shape parameter that affects the result.
 
+## Notation
+
+`paper/main.md` follows the notation of the main paper's `main.tex`, which is the golden standard: flat-world
+ground distance `x`, native curve parameter `u`, height `y` in the vertical cross-section (so the viewing plane
+is `xy` and the ground plane `xz`, with 3-D points `(x, y, z)` and `r = sqrt(x^2 + z^2)`), arc length `L(u)`
+with inverse `L^{-1}(p, x)`. Two deliberate departures, both stated once in the text: the uplift parameter is
+written `p` for all four families where the paper names each separately (`a`; `a,b`; `h'`; `kappa`), so one
+slider drives them all; and the appendix keeps the observer/camera symbols (`h`, `alpha`, `d_w`, `d_T`, `f`,
+`d_p`, `N`, `M`, `phi`) that the paper's transformation section does not define.
+
+The code has **not** been renamed: `tsunami.py`, `animate_sideview.py` and `web/js/*.js` still use `s` for the
+ground distance, `t` for the curve parameter and `z` for height, and `keep_lengths`/`sToT`/`distanceToT` speak
+that language. Only the figure axis labels, table columns and captions were updated, so reading the appendix
+beside the code means mapping `s -> x`, `t -> u`, `z -> y`.
+
 ## Gotchas
 
 - `SELECTED_METHOD` 13–16 (`balanced`) raise `ValueError: Unsupported method selected.` — `dist_field_balanced_tsunami` exists but its entry in `METHOD_FUNCS` is commented out.
